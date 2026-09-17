@@ -2,10 +2,11 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { btnPrimary, btnSecondary, card, link } from "@/lib/ui";
+import { btnPrimary, btnSecondary, card, link, inputClass } from "@/lib/ui";
 import Checkbox from "@/components/Checkbox";
 import Modal from "@/components/Modal";
 import { downloadCsvTemplate } from "@/lib/downloadTemplate";
+import { submitImport } from "@/lib/submitImport";
 
 type Status = { type: "success" | "error"; message: string } | null;
 
@@ -13,25 +14,22 @@ export default function ImportExportPanel() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [text, setText] = useState("");
   const [replace, setReplace] = useState(false);
   const [confirmingReplace, setConfirmingReplace] = useState(false);
   const [importing, setImporting] = useState(false);
   const [status, setStatus] = useState<Status>(null);
 
   async function runImport() {
-    if (!file) return;
+    if (!file && !text.trim()) return;
     setImporting(true);
     setStatus(null);
 
     try {
-      const form = new FormData();
-      form.append("file", file);
-      form.append("replace", String(replace));
-      const res = await fetch("/api/import", { method: "POST", body: form });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error ?? "Import failed.");
-      setStatus({ type: "success", message: `Imported ${body.imported} school${body.imported === 1 ? "" : "s"}.` });
+      const imported = await submitImport({ file, text, replace });
+      setStatus({ type: "success", message: `Imported ${imported} school${imported === 1 ? "" : "s"}.` });
       setFile(null);
+      setText("");
       if (fileInputRef.current) fileInputRef.current.value = "";
       router.refresh();
     } catch (err) {
@@ -67,8 +65,8 @@ export default function ImportExportPanel() {
         <p className="mt-1 text-sm text-gray-500">
           Upload a <code className="text-xs">.json</code> file previously downloaded from Export, or a{" "}
           <code className="text-xs">.csv</code>/<code className="text-xs">.xlsx</code>/<code className="text-xs">.xls</code>{" "}
-          spreadsheet of deadlines (one row per round). Imported schools get new IDs, so this is safe to run more than
-          once.
+          spreadsheet of deadlines (one row per round) — or paste JSON or CSV text directly. Imported schools get new
+          IDs, so this is safe to run more than once.
         </p>
         <button type="button" onClick={downloadCsvTemplate} className={`mt-2 text-sm font-medium ${link}`}>
           Download CSV template
@@ -83,11 +81,31 @@ export default function ImportExportPanel() {
               onChange={(e) => {
                 setStatus(null);
                 setFile(e.target.files?.[0] ?? null);
+                setText("");
               }}
               className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-full file:border-0 file:bg-gray-900/5 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-900 hover:file:bg-gray-900/10"
             />
             {file && <p className="mt-1.5 text-xs text-gray-500">Selected: {file.name}</p>}
           </div>
+
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-100" />
+            <span className="text-xs text-gray-400">or paste JSON or CSV</span>
+            <div className="h-px flex-1 bg-gray-100" />
+          </div>
+
+          <textarea
+            value={text}
+            onChange={(e) => {
+              setStatus(null);
+              setText(e.target.value);
+              setFile(null);
+              if (fileInputRef.current) fileInputRef.current.value = "";
+            }}
+            rows={6}
+            placeholder="Paste export JSON or CSV rows here…"
+            className={`${inputClass} font-mono text-xs`}
+          />
 
           <Checkbox
             checked={replace}
@@ -106,7 +124,7 @@ export default function ImportExportPanel() {
           )}
 
           <div>
-            <button onClick={handleImportClick} disabled={!file || importing} className={btnPrimary}>
+            <button onClick={handleImportClick} disabled={(!file && !text.trim()) || importing} className={btnPrimary}>
               {importing ? "Importing…" : "Import"}
             </button>
           </div>
@@ -115,8 +133,8 @@ export default function ImportExportPanel() {
 
       <Modal open={confirmingReplace} onClose={() => setConfirmingReplace(false)} title="Replace all existing data?">
         <p className="text-sm text-gray-600">
-          This deletes every school currently tracked before importing the file. There&apos;s no undo — export a
-          backup first if you&apos;re not sure.
+          This deletes every school currently tracked before importing. There&apos;s no undo — export a backup first
+          if you&apos;re not sure.
         </p>
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setConfirmingReplace(false)} className={btnSecondary}>

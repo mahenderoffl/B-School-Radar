@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { btnPrimary, card, inputClass, link } from "@/lib/ui";
 import { downloadCsvTemplate } from "@/lib/downloadTemplate";
+import { submitImport } from "@/lib/submitImport";
 
 const EXAMPLE = `{
   "name": "Stanford GSB",
@@ -54,27 +55,7 @@ export default function ImportSchoolForm() {
 
     setImporting(true);
     try {
-      let res: Response;
-      if (file) {
-        const form = new FormData();
-        form.append("file", file);
-        form.append("replace", "false");
-        res = await fetch("/api/import", { method: "POST", body: form });
-      } else {
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(text);
-        } catch {
-          throw new Error("That isn't valid JSON.");
-        }
-        res = await fetch("/api/import", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data: parsed, replace: false }),
-        });
-      }
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error ?? "Import failed.");
+      await submitImport({ file, text, replace: false });
       router.push("/schools");
       router.refresh();
     } catch (err) {
@@ -90,8 +71,8 @@ export default function ImportSchoolForm() {
         <h2 className="text-base font-semibold tracking-tight text-gray-900">Import a school</h2>
         <p className="mt-1 text-sm text-gray-500">
           Upload a <code className="text-xs">.json</code>, <code className="text-xs">.csv</code>,{" "}
-          <code className="text-xs">.xlsx</code>, or <code className="text-xs">.xls</code> file — or paste JSON for
-          one school or a list of schools below.
+          <code className="text-xs">.xlsx</code>, or <code className="text-xs">.xls</code> file — or paste JSON or
+          CSV text directly below.
         </p>
       </div>
 
@@ -109,7 +90,7 @@ export default function ImportSchoolForm() {
 
       <div className="flex items-center gap-3">
         <div className="h-px flex-1 bg-gray-100" />
-        <span className="text-xs text-gray-400">or paste JSON</span>
+        <span className="text-xs text-gray-400">or paste JSON or CSV</span>
         <div className="h-px flex-1 bg-gray-100" />
       </div>
 
@@ -120,7 +101,7 @@ export default function ImportSchoolForm() {
           setFile(null);
         }}
         rows={8}
-        placeholder="Paste school JSON here…"
+        placeholder="Paste school JSON or CSV rows here…"
         className={`${inputClass} font-mono text-xs`}
       />
 
