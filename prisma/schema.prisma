@@ -3,10 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  // Only used by the Prisma CLI (migrate/studio) against the local dev file.
-  // Actual runtime connections go through the libSQL adapter in src/lib/db.ts,
-  // which points at Turso in production. See README for deploy setup.
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

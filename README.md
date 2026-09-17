@@ -21,77 +21,53 @@ and a per-school checklist — so you don't have to keep it all in a spreadsheet
 
 ## Tech stack
 
-Next.js (App Router, TypeScript) + Prisma + SQLite (via the libSQL driver adapter) +
-Tailwind CSS.
+Next.js (App Router, TypeScript) + Prisma + Postgres (Prisma Postgres) + Tailwind CSS.
 
 ## Getting started (local)
 
 ```bash
 npm install
-cp .env.example .env
-npx prisma migrate dev   # creates prisma/dev.db and applies the schema
-npm run db:seed          # seeds ~10 schools (INSEAD, HEC, IE, IMD, ISB, LBS,
-                          # Judge, Saïd, MIT Sloan, Kellogg) as a starting point
+cp .env.example .env   # then paste your Prisma Postgres DATABASE_URL into .env
+npx prisma migrate deploy   # applies the schema to your database
+npm run db:seed             # seeds ~10 schools (INSEAD, HEC, IE, IMD, ISB, LBS,
+                             # Judge, Saïd, MIT Sloan, Kellogg) as a starting point
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-To wipe and reseed the database: `npm run db:reset`.
-
-Locally, `src/lib/db.ts` connects straight to `prisma/dev.db` — no Turso account
-needed for local dev.
+This app uses one Postgres database for both local dev and production — there's no
+separate local file to manage. See below for how to create it.
 
 ## Deploying to Vercel
 
-Vercel's serverless functions don't have a persistent writable filesystem, so the
-local SQLite file (`prisma/dev.db`) can't be the production database — it would
-reset or fail to write between invocations. This app instead talks to SQLite through
-the [libSQL](https://turso.tech/libsql) driver adapter, which can point at a real
-**Turso** database in production while still using a local file in dev (same code
-path, see `src/lib/db.ts`).
+This app uses **Prisma Postgres**, provisioned from the Vercel dashboard's Storage
+tab (Storage → Create Database → Prisma Postgres, Marketplace integration). It's
+free for a single-user app (500MB storage / 100K operations per month is far more
+than tracking a handful of schools will ever use).
 
-**1. Create a Turso database**
+**1. Create the database** in your Vercel project (Storage tab → Create Database →
+Prisma Postgres → Free plan). Connect it to this project when prompted — Vercel then
+auto-injects a `DATABASE_URL` environment variable into the project. You don't need
+to copy any secret into Vercel by hand.
 
-```bash
-# one-time: install the Turso CLI and sign in — see https://docs.turso.tech/cli/installation
-turso db create b-school-radar
-turso db show b-school-radar --url          # → TURSO_DATABASE_URL
-turso db tokens create b-school-radar       # → TURSO_AUTH_TOKEN
-```
+**2. Copy that same `DATABASE_URL`** into your local `.env` (find it under the
+database's "Quickstart" tab in the Vercel dashboard, or Project → Settings →
+Environment Variables). Local dev and production point at the same database.
 
-**2. Apply the schema to it** (Prisma Migrate doesn't speak the libSQL wire protocol
-directly, so push the existing migration SQL with the Turso CLI instead):
+**3. Apply the schema and seed it:**
 
 ```bash
-turso db shell b-school-radar < prisma/migrations/20260917175639_init/migration.sql
-```
-
-**3. Seed it** (optional, run from your machine — points the same seed script at Turso
-instead of the local file):
-
-```bash
-TURSO_DATABASE_URL="libsql://<your-db>.turso.io" \
-TURSO_AUTH_TOKEN="<token from step 1>" \
+npx prisma migrate deploy
 npm run db:seed
 ```
 
-**4. Set environment variables in the Vercel project** (Project → Settings →
-Environment Variables):
+**4. Deploy.** The `build` script (`prisma migrate deploy && next build`) applies
+any pending migrations automatically on every deploy, and `postinstall` runs
+`prisma generate` — no extra Vercel build configuration needed.
 
-| Name                 | Value                                  |
-|----------------------|-----------------------------------------|
-| `TURSO_DATABASE_URL` | `libsql://<your-db>.turso.io` from step 1 |
-| `TURSO_AUTH_TOKEN`   | the token from step 1                   |
-
-You do **not** need to set `DATABASE_URL` on Vercel — it's only read by the Prisma
-CLI for local migrations, never by the deployed app.
-
-**5. Deploy.** `npm run build` already runs `prisma generate` via the `postinstall`
-script, so no extra Vercel build settings are needed.
-
-Whenever you add a new Prisma migration locally, re-run step 2 against Turso with the
-new migration file before/after deploying.
+Whenever you add a new Prisma migration, it's applied automatically the next time
+you deploy (or run `npx prisma migrate deploy` locally).
 
 ## Keeping data current
 
