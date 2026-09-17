@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { APPLICATION_STAGE_LABELS, parseChecklist } from "@/lib/utils";
+import { card, inputClass, checkbox } from "@/lib/ui";
 
 type ChecklistItem = { id: string; label: string; done: boolean };
 
@@ -49,16 +50,16 @@ export default function RoundStatusPanel({
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className={`${card} p-4`}>
       <div className="mb-3 flex items-center justify-between">
         <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Status</label>
         {isPending && <span className="text-xs text-gray-400">Saving…</span>}
-        {!isPending && savedAt && <span className="text-xs text-emerald-600">Saved</span>}
+        {!isPending && savedAt && <span className="text-xs font-medium text-emerald-600">Saved</span>}
       </div>
       <select
         value={status}
         onChange={(e) => changeStatus(e.target.value)}
-        className="mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+        className={`${inputClass} mb-4`}
       >
         {Object.entries(APPLICATION_STAGE_LABELS).map(([value, label]) => (
           <option key={value} value={value}>
@@ -76,7 +77,7 @@ export default function RoundStatusPanel({
                 type="checkbox"
                 checked={item.done}
                 onChange={() => toggleItem(item.id)}
-                className="h-4 w-4 rounded border-gray-300"
+                className={checkbox}
               />
               <span className={item.done ? "text-gray-400 line-through" : ""}>{item.label}</span>
             </label>
@@ -90,7 +91,7 @@ export default function RoundStatusPanel({
         onChange={(e) => setNotes(e.target.value)}
         onBlur={() => save({ notes })}
         rows={2}
-        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+        className={inputClass}
         placeholder="Any notes for this round…"
       />
     </div>

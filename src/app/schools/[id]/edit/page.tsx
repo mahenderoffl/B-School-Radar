@@ -47,8 +47,8 @@ export default async function EditSchoolPage({ params }: { params: Promise<{ id:
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Edit {school.name}</h1>
-        <p className="mt-1 text-sm text-gray-500">Update dates and requirements after checking the school&apos;s official page.</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Edit {school.name}</h1>
+        <p className="mt-1.5 text-[15px] text-gray-500">Update dates and requirements after checking the school&apos;s official page.</p>
       </div>
       <SchoolForm mode="edit" schoolId={school.id} initial={initial} />
     </div>

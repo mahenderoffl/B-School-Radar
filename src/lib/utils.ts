@@ -37,7 +37,7 @@ export function getUrgency(deadlineDate: Date | string): {
       urgency: "closed",
       daysRemaining,
       label: "Closed",
-      badgeClasses: "bg-gray-100 text-gray-500 border-gray-200",
+      badgeClasses: "bg-gray-100 text-gray-500",
     };
   }
   if (daysRemaining <= 7) {
@@ -45,7 +45,7 @@ export function getUrgency(deadlineDate: Date | string): {
       urgency: "urgent",
       daysRemaining,
       label: daysRemaining === 0 ? "Due today" : `${daysRemaining}d left`,
-      badgeClasses: "bg-red-50 text-red-700 border-red-200",
+      badgeClasses: "bg-red-100 text-red-700",
     };
   }
   if (daysRemaining <= 30) {
@@ -53,7 +53,7 @@ export function getUrgency(deadlineDate: Date | string): {
       urgency: "soon",
       daysRemaining,
       label: `${daysRemaining}d left`,
-      badgeClasses: "bg-amber-50 text-amber-700 border-amber-200",
+      badgeClasses: "bg-amber-100 text-amber-800",
     };
   }
   if (daysRemaining <= 90) {
@@ -61,14 +61,14 @@ export function getUrgency(deadlineDate: Date | string): {
       urgency: "open",
       daysRemaining,
       label: `${daysRemaining}d left`,
-      badgeClasses: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      badgeClasses: "bg-emerald-100 text-emerald-700",
     };
   }
   return {
     urgency: "faraway",
     daysRemaining,
     label: `${daysRemaining}d left`,
-    badgeClasses: "bg-blue-50 text-blue-700 border-blue-200",
+    badgeClasses: "bg-blue-100 text-blue-700",
   };
 }
 

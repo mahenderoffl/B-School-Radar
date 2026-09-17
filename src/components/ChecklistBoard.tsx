@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { RoundInfo } from "@/lib/checklist";
+import { card, checkbox } from "@/lib/ui";
 
 export default function ChecklistBoard({ rounds }: { rounds: RoundInfo[] }) {
   const [data, setData] = useState(rounds);
@@ -42,7 +43,7 @@ export default function ChecklistBoard({ rounds }: { rounds: RoundInfo[] }) {
 
   if (grouped.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-gray-500">
+      <div className="rounded-2xl border border-dashed border-gray-300 bg-white/60 px-4 py-10 text-center text-sm text-gray-500">
         Nothing to track — every round is either submitted or not yet added.
       </div>
     );
@@ -53,10 +54,10 @@ export default function ChecklistBoard({ rounds }: { rounds: RoundInfo[] }) {
       {grouped.map(([label, items]) => {
         const doneCount = items.filter((i) => i.done).length;
         return (
-          <section key={label} className="rounded-lg border border-gray-200 bg-white">
-            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-              <h3 className="font-medium text-gray-900">{label}</h3>
-              <span className="text-xs text-gray-500">
+          <section key={label} className={card}>
+            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3.5">
+              <h3 className="font-semibold tracking-tight text-gray-900">{label}</h3>
+              <span className="text-xs font-medium text-gray-500">
                 {doneCount}/{items.length} done
               </span>
             </div>
@@ -67,9 +68,12 @@ export default function ChecklistBoard({ rounds }: { rounds: RoundInfo[] }) {
                     type="checkbox"
                     checked={item.done}
                     onChange={() => toggle(item.roundId, item.itemId)}
-                    className="h-4 w-4 rounded border-gray-300"
+                    className={checkbox}
                   />
-                  <Link href={`/schools/${item.schoolId}`} className={`flex-1 ${item.done ? "text-gray-400 line-through" : "text-gray-800"} hover:underline`}>
+                  <Link
+                    href={`/schools/${item.schoolId}`}
+                    className={`flex-1 transition-colors ${item.done ? "text-gray-400 line-through" : "text-gray-800 hover:text-blue-600"}`}
+                  >
                     {item.schoolName}
                   </Link>
                   <span className="text-xs text-gray-400">

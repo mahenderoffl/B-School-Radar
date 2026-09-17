@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { btnDanger, btnDangerOutline, btnGhost } from "@/lib/ui";
 
 export default function DeleteSchoolButton({ schoolId }: { schoolId: string }) {
   const router = useRouter();
@@ -10,10 +11,7 @@ export default function DeleteSchoolButton({ schoolId }: { schoolId: string }) {
 
   if (!confirming) {
     return (
-      <button
-        onClick={() => setConfirming(true)}
-        className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
-      >
+      <button onClick={() => setConfirming(true)} className={`${btnDangerOutline} !px-4 !py-2`}>
         Delete
       </button>
     );
@@ -34,14 +32,11 @@ export default function DeleteSchoolButton({ schoolId }: { schoolId: string }) {
             setDeleting(false);
           }
         }}
-        className="rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
+        className={`${btnDanger} !px-4 !py-2`}
       >
         {deleting ? "Deleting…" : "Confirm"}
       </button>
-      <button
-        onClick={() => setConfirming(false)}
-        className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-      >
+      <button onClick={() => setConfirming(false)} className={btnGhost}>
         Cancel
       </button>
     </div>

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { getSchoolsOverview, nextOpenRound } from "@/lib/queries";
+import { formatDate, REQUIREMENT_LABELS } from "@/lib/utils";
+import { btnPrimary, tableCard, link } from "@/lib/ui";
+import DeadlineBadge from "@/components/DeadlineBadge";
 
 export const dynamic = "force-dynamic";
-import { formatDate, REQUIREMENT_LABELS } from "@/lib/utils";
-import DeadlineBadge from "@/components/DeadlineBadge";
 
 export default async function SchoolsPage() {
   const schools = await getSchoolsOverview();
@@ -12,20 +13,17 @@ export default async function SchoolsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Schools</h1>
-          <p className="mt-1 text-sm text-gray-500">{schools.length} schools tracked</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Schools</h1>
+          <p className="mt-1.5 text-[15px] text-gray-500">{schools.length} schools tracked</p>
         </div>
-        <Link
-          href="/schools/new"
-          className="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-700"
-        >
+        <Link href="/schools/new" className={btnPrimary}>
           + Add school
         </Link>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+      <div className={tableCard}>
+        <table className="min-w-full divide-y divide-gray-100 text-sm">
+          <thead className="bg-gray-50/80 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
             <tr>
               <th className="px-4 py-3">School</th>
               <th className="px-4 py-3">Next deadline</th>
@@ -46,9 +44,9 @@ export default async function SchoolsPage() {
               )[0];
 
               return (
-                <tr key={school.id} className="hover:bg-gray-50">
+                <tr key={school.id} className="transition-colors hover:bg-gray-50/80">
                   <td className="px-4 py-3">
-                    <Link href={`/schools/${school.id}`} className="font-medium text-gray-900 hover:underline">
+                    <Link href={`/schools/${school.id}`} className="font-medium text-gray-900 transition-colors hover:text-blue-600">
                       {school.name}
                     </Link>
                     <div className="text-xs text-gray-500">{school.city}, {school.country}</div>
@@ -88,7 +86,7 @@ export default async function SchoolsPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link href={`/schools/${school.id}`} className="text-sm font-medium text-gray-600 hover:text-gray-900">
+                    <Link href={`/schools/${school.id}`} className={`text-sm ${link}`}>
                       View →
                     </Link>
                   </td>

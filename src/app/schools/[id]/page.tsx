@@ -11,6 +11,7 @@ import {
 import DeadlineBadge from "@/components/DeadlineBadge";
 import RoundStatusPanel from "@/components/RoundStatusPanel";
 import DeleteSchoolButton from "@/components/DeleteSchoolButton";
+import { btnSecondary, card, link } from "@/lib/ui";
 
 export default async function SchoolDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -21,17 +22,17 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
     <div className="flex flex-col gap-8">
       <div className="flex items-start justify-between">
         <div>
-          <Link href="/schools" className="text-sm text-gray-500 hover:underline">
+          <Link href="/schools" className="text-sm text-gray-500 transition-colors hover:text-gray-900">
             ← All schools
           </Link>
-          <h1 className="mt-1 text-2xl font-semibold text-gray-900">{school.name}</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{school.name}</h1>
+          <p className="mt-1.5 text-[15px] text-gray-500">
             {school.city}, {school.country}
             {school.globalRanking ? ` · Rank #${school.globalRanking}` : ""}
             {school.website && (
               <>
                 {" · "}
-                <a href={school.website} target="_blank" rel="noreferrer" className="text-gray-600 hover:underline">
+                <a href={school.website} target="_blank" rel="noreferrer" className={link}>
                   Website ↗
                 </a>
               </>
@@ -39,10 +40,7 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href={`/schools/${school.id}/edit`}
-            className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
+          <Link href={`/schools/${school.id}/edit`} className={`${btnSecondary} !px-4 !py-2`}>
             Edit
           </Link>
           <DeleteSchoolButton schoolId={school.id} />
@@ -51,8 +49,8 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
 
       {school.programs.map((program) => (
         <div key={program.id} className="flex flex-col gap-6">
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <h2 className="text-lg font-medium text-gray-900">{program.name}</h2>
+          <div className={`${card} p-5`}>
+            <h2 className="text-lg font-semibold tracking-tight text-gray-900">{program.name}</h2>
             <dl className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-4">
               <div>
                 <dt className="text-gray-500">Format</dt>
@@ -72,11 +70,11 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
           </div>
 
           <section>
-            <h3 className="mb-3 text-base font-medium text-gray-900">Requirements</h3>
+            <h3 className="mb-3 text-base font-semibold tracking-tight text-gray-900">Requirements</h3>
             <div className="flex flex-wrap gap-2">
               {program.requirements.length === 0 && <span className="text-sm text-gray-400">No requirements listed.</span>}
               {program.requirements.map((r) => (
-                <div key={r.id} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                <div key={r.id} className={`${card} px-3.5 py-2.5 text-sm`}>
                   <div className="flex items-center gap-2 font-medium text-gray-800">
                     {REQUIREMENT_LABELS[r.type]}
                     {!r.mandatory && (
@@ -93,14 +91,11 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
           </section>
 
           <section>
-            <h3 className="mb-3 text-base font-medium text-gray-900">Scholarships</h3>
+            <h3 className="mb-3 text-base font-semibold tracking-tight text-gray-900">Scholarships</h3>
             <div className="flex flex-col gap-2">
               {program.scholarships.length === 0 && <span className="text-sm text-gray-400">No scholarships listed.</span>}
               {program.scholarships.map((s) => (
-                <div
-                  key={s.id}
-                  className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm"
-                >
+                <div key={s.id} className={`${card} flex items-center justify-between px-4 py-3.5 text-sm`}>
                   <div>
                     <div className="font-medium text-gray-800">{s.name}</div>
                     <div className="text-gray-500">
@@ -119,7 +114,7 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
           </section>
 
           <section>
-            <h3 className="mb-3 text-base font-medium text-gray-900">Intakes & rounds</h3>
+            <h3 className="mb-3 text-base font-semibold tracking-tight text-gray-900">Intakes & rounds</h3>
             <div className="flex flex-col gap-6">
               {program.intakes.map((intake) => (
                 <div key={intake.id}>
@@ -129,7 +124,7 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {intake.rounds.map((round) => (
                       <div key={round.id} className="flex flex-col gap-3">
-                        <div className="rounded-lg border border-gray-200 bg-white p-4">
+                        <div className={`${card} p-4`}>
                           <div className="flex items-center justify-between">
                             <div className="font-medium text-gray-800">Round {round.roundNumber}</div>
                             <DeadlineBadge date={round.deadlineDate} />

@@ -14,8 +14,8 @@ export default async function ChecklistPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Checklist</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Checklist</h1>
+        <p className="mt-1.5 text-[15px] text-gray-500">
           Tasks grouped by type across every school still in progress — check one off here as easily as from the school page.
         </p>
       </div>

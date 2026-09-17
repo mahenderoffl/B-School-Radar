@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { REQUIREMENT_LABELS, SCHOLARSHIP_TYPE_LABELS, PROGRAM_FORMAT_LABELS, MONTH_NAMES } from "@/lib/utils";
 import type { SchoolFormPayload, RequirementInput, ScholarshipInput, RoundInput } from "@/lib/schoolForm";
+import { btnPrimary, btnSecondary, btnGhost, btnDangerOutline, card, inputClass } from "@/lib/ui";
 
 const REQUIREMENT_TYPES = Object.keys(REQUIREMENT_LABELS);
 const SCHOLARSHIP_TYPES = Object.keys(SCHOLARSHIP_TYPE_LABELS);
@@ -115,10 +116,10 @@ export default function SchoolForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-      {error && <div className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{error}</div>}
+      {error && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</div>}
 
-      <section className="rounded-lg border border-gray-200 bg-white p-4">
-        <h2 className="mb-4 text-base font-medium text-gray-900">School</h2>
+      <section className={`${card} p-5`}>
+        <h2 className="mb-4 text-base font-semibold tracking-tight text-gray-900">School</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Name" required>
             <input required value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
@@ -138,8 +139,8 @@ export default function SchoolForm({
         </div>
       </section>
 
-      <section className="rounded-lg border border-gray-200 bg-white p-4">
-        <h2 className="mb-4 text-base font-medium text-gray-900">Program</h2>
+      <section className={`${card} p-5`}>
+        <h2 className="mb-4 text-base font-semibold tracking-tight text-gray-900">Program</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Program name" required>
             <input required value={programName} onChange={(e) => setProgramName(e.target.value)} className={inputClass} />
@@ -177,14 +178,10 @@ export default function SchoolForm({
         </div>
       </section>
 
-      <section className="rounded-lg border border-gray-200 bg-white p-4">
+      <section className={`${card} p-5`}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-medium text-gray-900">Rounds</h2>
-          <button
-            type="button"
-            onClick={() => setRounds([...rounds, emptyRound(rounds.length + 1)])}
-            className="text-sm font-medium text-gray-600 hover:text-gray-900"
-          >
+          <h2 className="text-base font-semibold tracking-tight text-gray-900">Rounds</h2>
+          <button type="button" onClick={() => setRounds([...rounds, emptyRound(rounds.length + 1)])} className={btnGhost}>
             + Add round
           </button>
         </div>
@@ -222,11 +219,7 @@ export default function SchoolForm({
                   className={inputClass}
                 />
               </Field>
-              <button
-                type="button"
-                onClick={() => setRounds(rounds.filter((_, j) => j !== i))}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-              >
+              <button type="button" onClick={() => setRounds(rounds.filter((_, j) => j !== i))} className={btnDangerOutline}>
                 Remove
               </button>
             </div>
@@ -234,14 +227,10 @@ export default function SchoolForm({
         </div>
       </section>
 
-      <section className="rounded-lg border border-gray-200 bg-white p-4">
+      <section className={`${card} p-5`}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-medium text-gray-900">Test requirements</h2>
-          <button
-            type="button"
-            onClick={() => setRequirements([...requirements, emptyRequirement()])}
-            className="text-sm font-medium text-gray-600 hover:text-gray-900"
-          >
+          <h2 className="text-base font-semibold tracking-tight text-gray-900">Test requirements</h2>
+          <button type="button" onClick={() => setRequirements([...requirements, emptyRequirement()])} className={btnGhost}>
             + Add requirement
           </button>
         </div>
@@ -289,7 +278,7 @@ export default function SchoolForm({
               <button
                 type="button"
                 onClick={() => setRequirements(requirements.filter((_, j) => j !== i))}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                className={btnDangerOutline}
               >
                 Remove
               </button>
@@ -298,14 +287,10 @@ export default function SchoolForm({
         </div>
       </section>
 
-      <section className="rounded-lg border border-gray-200 bg-white p-4">
+      <section className={`${card} p-5`}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-medium text-gray-900">Scholarships</h2>
-          <button
-            type="button"
-            onClick={() => setScholarships([...scholarships, emptyScholarship()])}
-            className="text-sm font-medium text-gray-600 hover:text-gray-900"
-          >
+          <h2 className="text-base font-semibold tracking-tight text-gray-900">Scholarships</h2>
+          <button type="button" onClick={() => setScholarships([...scholarships, emptyScholarship()])} className={btnGhost}>
             + Add scholarship
           </button>
         </div>
@@ -361,7 +346,7 @@ export default function SchoolForm({
               <button
                 type="button"
                 onClick={() => setScholarships(scholarships.filter((_, j) => j !== i))}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                className={btnDangerOutline}
               >
                 Remove
               </button>
@@ -371,26 +356,16 @@ export default function SchoolForm({
       </section>
 
       <div className="flex justify-end gap-3">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
+        <button type="button" onClick={() => router.back()} className={btnSecondary}>
           Cancel
         </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
-        >
+        <button type="submit" disabled={submitting} className={btnPrimary}>
           {submitting ? "Saving…" : mode === "create" ? "Add school" : "Save changes"}
         </button>
       </div>
     </form>
   );
 }
-
-const inputClass = "w-full rounded-md border border-gray-300 px-3 py-2 text-sm";
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
