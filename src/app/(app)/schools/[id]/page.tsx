@@ -40,6 +40,9 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <a href={`/api/schools/${school.id}/export`} download className={`${btnSecondary} !px-4 !py-2`}>
+            Export
+          </a>
           <Link href={`/schools/${school.id}/edit`} className={`${btnSecondary} !px-4 !py-2`}>
             Edit
           </Link>

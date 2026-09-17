@@ -2,24 +2,39 @@ import { prisma } from "@/lib/db";
 
 export const EXPORT_VERSION = 1;
 
+const schoolInclude = {
+  programs: {
+    include: {
+      intakes: { include: { rounds: { include: { applicationStatus: true } } } },
+      requirements: true,
+      scholarships: true,
+    },
+  },
+} as const;
+
 export async function exportAllData() {
   const schools = await prisma.school.findMany({
-    include: {
-      programs: {
-        include: {
-          intakes: { include: { rounds: { include: { applicationStatus: true } } } },
-          requirements: true,
-          scholarships: true,
-        },
-      },
-    },
-    orderBy: { name: "asc" },
+    include: schoolInclude,
+    orderBy: { name: "asc" as const },
   });
 
   return {
     version: EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
     schools,
+  };
+}
+
+export async function exportSchoolById(id: string) {
+  const school = await prisma.school.findUnique({
+    where: { id },
+    include: schoolInclude,
+  });
+
+  return {
+    version: EXPORT_VERSION,
+    exportedAt: new Date().toISOString(),
+    schools: school ? [school] : [],
   };
 }
 
@@ -43,15 +58,29 @@ function requireNumber(value: unknown, field: string): number {
 export { ImportValidationError };
 
 /**
+ * Accepts anything reasonable: a full export ({ schools: [...] }), a bare
+ * array of schools, or a single school object — so a school pasted by hand
+ * doesn't need to be wrapped just to satisfy the format.
+ */
+function normalizeSchoolsPayload(payload: unknown): unknown[] {
+  if (Array.isArray(payload)) return payload;
+  if (payload && typeof payload === "object") {
+    const obj = payload as Record<string, unknown>;
+    if (Array.isArray(obj.schools)) return obj.schools;
+    if (typeof obj.name === "string") return [obj];
+  }
+  throw new ImportValidationError(
+    'Expected a school object, a list of schools, or an export file (an object with a "schools" array).'
+  );
+}
+
+/**
  * Recreates schools from an export payload. IDs from the export are ignored —
  * every record gets a fresh id — so importing is always additive at the
  * database level; `replace` just clears existing data first.
  */
 export async function importData(payload: unknown, { replace }: { replace: boolean }) {
-  if (typeof payload !== "object" || payload === null || !Array.isArray((payload as { schools?: unknown }).schools)) {
-    throw new ImportValidationError('Expected an object with a "schools" array (the format produced by Export).');
-  }
-  const schools = (payload as { schools: unknown[] }).schools;
+  const schools = normalizeSchoolsPayload(payload);
 
   if (replace) {
     await prisma.school.deleteMany();
