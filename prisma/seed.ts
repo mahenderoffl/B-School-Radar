@@ -1,6 +1,15 @@
 import { PrismaClient, ProgramFormat, RequirementType, ScholarshipType } from "@prisma/client";
+import { PrismaLibSQL } from "@prisma/adapter-libsql";
+import path from "node:path";
 
-const prisma = new PrismaClient();
+// Same connection logic as src/lib/db.ts: point at Turso when configured
+// (e.g. `TURSO_DATABASE_URL=... npm run db:seed` to seed production),
+// otherwise fall back to the local dev.db file.
+const adapter = new PrismaLibSQL({
+  url: process.env.TURSO_DATABASE_URL ?? `file:${path.join(process.cwd(), "prisma", "dev.db")}`,
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
+const prisma = new PrismaClient({ adapter });
 
 // Seed data reflects publicly-known MBA cycle patterns as of the 2026-2027
 // application cycle. Deadlines shift slightly every year — treat these as a
