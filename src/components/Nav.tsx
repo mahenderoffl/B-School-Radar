@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { btnPrimary } from "@/lib/ui";
+import Logo from "@/components/Logo";
 
 const links = [
   { href: "/dashboard", label: "Dashboard" },
@@ -21,7 +22,7 @@ export default function Nav() {
           href="/dashboard"
           className="flex items-center gap-2 rounded-sm font-semibold tracking-tight text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
         >
-          <span aria-hidden className="text-xl">🎯</span>
+          <Logo size={28} />
           B-School Radar
         </Link>
         <nav className="flex items-center gap-1">

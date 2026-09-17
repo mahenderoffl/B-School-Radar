@@ -2,55 +2,36 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { btnPrimary, btnSecondary, card } from "@/lib/ui";
+import { btnPrimary, btnSecondary, card, link } from "@/lib/ui";
 import Checkbox from "@/components/Checkbox";
 import Modal from "@/components/Modal";
+import { downloadCsvTemplate } from "@/lib/downloadTemplate";
 
 type Status = { type: "success" | "error"; message: string } | null;
 
 export default function ImportExportPanel() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [fileContents, setFileContents] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [replace, setReplace] = useState(false);
   const [confirmingReplace, setConfirmingReplace] = useState(false);
   const [importing, setImporting] = useState(false);
   const [status, setStatus] = useState<Status>(null);
 
-  function handleFile(file: File) {
-    setStatus(null);
-    setFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = () => setFileContents(reader.result as string);
-    reader.readAsText(file);
-  }
-
   async function runImport() {
-    if (!fileContents) return;
+    if (!file) return;
     setImporting(true);
     setStatus(null);
 
-    let parsed: unknown;
     try {
-      parsed = JSON.parse(fileContents);
-    } catch {
-      setStatus({ type: "error", message: "That file isn't valid JSON." });
-      setImporting(false);
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data: parsed, replace }),
-      });
+      const form = new FormData();
+      form.append("file", file);
+      form.append("replace", String(replace));
+      const res = await fetch("/api/import", { method: "POST", body: form });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "Import failed.");
       setStatus({ type: "success", message: `Imported ${body.imported} school${body.imported === 1 ? "" : "s"}.` });
-      setFileName(null);
-      setFileContents(null);
+      setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       router.refresh();
     } catch (err) {
@@ -84,23 +65,28 @@ export default function ImportExportPanel() {
       <section className={`${card} p-5`}>
         <h2 className="text-base font-semibold tracking-tight text-gray-900">Import</h2>
         <p className="mt-1 text-sm text-gray-500">
-          Upload a file previously downloaded from Export. Imported schools get new IDs, so this is safe to run more
-          than once.
+          Upload a <code className="text-xs">.json</code> file previously downloaded from Export, or a{" "}
+          <code className="text-xs">.csv</code>/<code className="text-xs">.xlsx</code>/<code className="text-xs">.xls</code>{" "}
+          spreadsheet of deadlines (one row per round). Imported schools get new IDs, so this is safe to run more than
+          once.
         </p>
+        <button type="button" onClick={downloadCsvTemplate} className={`mt-2 text-sm font-medium ${link}`}>
+          Download CSV template
+        </button>
 
         <div className="mt-4 flex flex-col gap-4">
           <div>
             <input
               ref={fileInputRef}
               type="file"
-              accept="application/json"
+              accept=".json,.csv,.xlsx,.xls,application/json,text/csv"
               onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleFile(file);
+                setStatus(null);
+                setFile(e.target.files?.[0] ?? null);
               }}
               className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-full file:border-0 file:bg-gray-900/5 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-900 hover:file:bg-gray-900/10"
             />
-            {fileName && <p className="mt-1.5 text-xs text-gray-500">Selected: {fileName}</p>}
+            {file && <p className="mt-1.5 text-xs text-gray-500">Selected: {file.name}</p>}
           </div>
 
           <Checkbox
@@ -120,7 +106,7 @@ export default function ImportExportPanel() {
           )}
 
           <div>
-            <button onClick={handleImportClick} disabled={!fileContents || importing} className={btnPrimary}>
+            <button onClick={handleImportClick} disabled={!file || importing} className={btnPrimary}>
               {importing ? "Importing…" : "Import"}
             </button>
           </div>

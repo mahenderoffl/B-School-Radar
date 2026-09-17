@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { btnPrimary, card, inputClass } from "@/lib/ui";
+import { btnPrimary, card, inputClass, link } from "@/lib/ui";
+import { downloadCsvTemplate } from "@/lib/downloadTemplate";
 
 const EXAMPLE = `{
   "name": "Stanford GSB",
@@ -39,41 +40,39 @@ const EXAMPLE = `{
 export default function ImportSchoolForm() {
   const router = useRouter();
   const [text, setText] = useState("");
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [showExample, setShowExample] = useState(false);
 
-  function handleFile(file: File) {
-    setFileName(file.name);
-    setStatus(null);
-    const reader = new FileReader();
-    reader.onload = () => setText(reader.result as string);
-    reader.readAsText(file);
-  }
-
   async function runImport() {
     setStatus(null);
-    if (!text.trim()) {
+    if (!file && !text.trim()) {
       setStatus({ type: "error", message: "Paste JSON or choose a file first." });
-      return;
-    }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      setStatus({ type: "error", message: "That isn't valid JSON." });
       return;
     }
 
     setImporting(true);
     try {
-      const res = await fetch("/api/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data: parsed, replace: false }),
-      });
+      let res: Response;
+      if (file) {
+        const form = new FormData();
+        form.append("file", file);
+        form.append("replace", "false");
+        res = await fetch("/api/import", { method: "POST", body: form });
+      } else {
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(text);
+        } catch {
+          throw new Error("That isn't valid JSON.");
+        }
+        res = await fetch("/api/import", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: parsed, replace: false }),
+        });
+      }
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "Import failed.");
       router.push("/schools");
@@ -90,40 +89,53 @@ export default function ImportSchoolForm() {
       <div>
         <h2 className="text-base font-semibold tracking-tight text-gray-900">Import a school</h2>
         <p className="mt-1 text-sm text-gray-500">
-          Paste JSON for one school, a list of schools, or a file from another school&apos;s Export button (or the
-          full export from the Data page).
+          Upload a <code className="text-xs">.json</code>, <code className="text-xs">.csv</code>,{" "}
+          <code className="text-xs">.xlsx</code>, or <code className="text-xs">.xls</code> file — or paste JSON for
+          one school or a list of schools below.
         </p>
       </div>
 
       <input
         type="file"
-        accept="application/json"
+        accept=".json,.csv,.xlsx,.xls,application/json,text/csv"
         onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleFile(file);
+          setStatus(null);
+          setFile(e.target.files?.[0] ?? null);
+          setText("");
         }}
         className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-full file:border-0 file:bg-gray-900/5 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-900 hover:file:bg-gray-900/10"
       />
-      {fileName && <p className="text-xs text-gray-500">Selected: {fileName}</p>}
+      {file && <p className="text-xs text-gray-500">Selected: {file.name}</p>}
+
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-gray-100" />
+        <span className="text-xs text-gray-400">or paste JSON</span>
+        <div className="h-px flex-1 bg-gray-100" />
+      </div>
 
       <textarea
         value={text}
         onChange={(e) => {
           setText(e.target.value);
-          setFileName(null);
+          setFile(null);
         }}
         rows={8}
         placeholder="Paste school JSON here…"
         className={`${inputClass} font-mono text-xs`}
       />
 
-      <button
-        type="button"
-        onClick={() => setShowExample((v) => !v)}
-        className="self-start text-xs font-medium text-blue-600 transition-colors hover:text-blue-700"
-      >
-        {showExample ? "Hide example" : "See an example"}
-      </button>
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          onClick={() => setShowExample((v) => !v)}
+          className="self-start text-xs font-medium text-blue-600 transition-colors hover:text-blue-700"
+        >
+          {showExample ? "Hide JSON example" : "See a JSON example"}
+        </button>
+        <button type="button" onClick={downloadCsvTemplate} className={`self-start text-xs font-medium ${link}`}>
+          Download CSV template
+        </button>
+      </div>
       {showExample && (
         <pre className="overflow-x-auto rounded-xl bg-gray-900/5 p-3 text-xs text-gray-700">
           <code>{EXAMPLE}</code>

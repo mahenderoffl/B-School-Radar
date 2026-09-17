@@ -19,12 +19,15 @@ and a per-school checklist — so you don't have to keep it all in a spreadsheet
 - **Checklist** — the same tasks (test scores, essays, LORs, transcripts, fees) grouped
   across every in-progress school, so checking "GMAT submitted" once shows you every
   school it still needs it for.
-- **Add / edit school** — a form for entering a school's current-cycle data yourself;
-  there's no reliable API for this, so the intended workflow is a manual seed that you
-  re-verify against each school's official admissions page every cycle.
-- **Data** (`/data`) — export everything as one JSON file, or import a previously
-  exported file (merging into existing data, or wiping and replacing it). Useful as a
-  backup, or for moving data to a different deployment.
+- **Add / edit school** — a form for entering a school's current-cycle data yourself,
+  or import one from a file instead (see below); there's no reliable API for this, so
+  the intended workflow is a manual seed that you re-verify against each school's
+  official admissions page every cycle.
+- **Import / export** — export everything as one JSON file (`/data`, or per-school from
+  its detail page) for backup or moving to a different deployment. Import accepts that
+  same JSON, or a `.csv`/`.xlsx`/`.xls` spreadsheet of deadlines (one row per round) for
+  bulk entry — from the Data page (merge or replace-all) or the Add School page (always
+  merges). A CSV template with the expected columns is one click away from either.
 
 ## Tech stack
 

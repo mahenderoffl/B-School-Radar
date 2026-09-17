@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { btnPrimary, btnSecondary, card } from "@/lib/ui";
+import Logo from "@/components/Logo";
 
 const features = [
   {
@@ -16,7 +17,7 @@ const features = [
   },
   {
     title: "Import & export",
-    body: "Your whole dataset as one JSON file — back it up, or move it to another deployment whenever you need to.",
+    body: "JSON for a full backup, or CSV/Excel for bulk-entering deadlines from a spreadsheet — per school or for everything at once.",
   },
 ];
 
@@ -32,7 +33,7 @@ export default function LandingPage() {
       <header className="border-b border-black/5 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <span className="flex items-center gap-2 font-semibold tracking-tight text-gray-900">
-            <span aria-hidden className="text-xl">🎯</span>
+            <Logo size={28} />
             B-School Radar
           </span>
           <Link href="/dashboard" className={`${btnPrimary} !px-4 !py-2`}>
