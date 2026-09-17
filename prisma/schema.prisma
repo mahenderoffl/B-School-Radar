@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum ProgramFormat {
+  FULL_TIME
+  PART_TIME
+  EXECUTIVE
+  ONLINE
+}
+
+enum IntakeStatus {
+  UPCOMING
+  OPEN
+  CLOSED
+}
+
+enum RequirementType {
+  GMAT
+  GRE
+  IELTS
+  TOEFL
+  IEGAT
+  OTHER
+}
+
+enum ScholarshipType {
+  MERIT
+  NEED
+  DIVERSITY
+  OTHER
+}
+
+enum ApplicationStage {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  WAITLISTED
+  ADMITTED
+  REJECTED
+}
+
+model School {
+  id             String    @id @default(cuid())
+  name           String
+  country        String
+  city           String
+  globalRanking  Int?
+  website        String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  programs       Program[]
+}
+
+model Program {
+  id            String        @id @default(cuid())
+  school        School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  schoolId      String
+  name          String
+  format        ProgramFormat @default(FULL_TIME)
+  durationMonths Int?
+  tuition       Float?
+  currency      String?       @default("USD")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  intakes       Intake[]
+  requirements  Requirement[]
+  scholarships  Scholarship[]
+}
+
+model Intake {
+  id          String       @id @default(cuid())
+  program     Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programId   String
+  startMonth  Int
+  startYear   Int
+  status      IntakeStatus @default(UPCOMING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  rounds      Round[]
+}
+
+model Round {
+  id            String   @id @default(cuid())
+  intake        Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  intakeId      String
+  roundNumber   Int
+  deadlineDate  DateTime
+  decisionDate  DateTime?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  applicationStatus ApplicationStatus?
+}
+
+model Requirement {
+  id             String           @id @default(cuid())
+  program        Program          @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programId      String
+  type           RequirementType
+  mandatory      Boolean          @default(true)
+  waiverCondition String?
+  minScore       Float?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model Scholarship {
+  id                    String          @id @default(cuid())
+  program               Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programId             String
+  name                  String
+  type                  ScholarshipType @default(MERIT)
+  amountPct             Float?
+  deadlineDate          DateTime?
+  requiresSeparateForm  Boolean         @default(false)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+}
+
+model ApplicationStatus {
+  id              String           @id @default(cuid())
+  round           Round            @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  roundId         String           @unique
+  status          ApplicationStage @default(NOT_STARTED)
+  taskChecklist   String           @default("[]")
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
