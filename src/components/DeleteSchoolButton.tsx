@@ -2,43 +2,44 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { btnDanger, btnDangerOutline, btnGhost } from "@/lib/ui";
+import { btnDanger, btnGhost, btnDangerOutline } from "@/lib/ui";
+import Modal from "@/components/Modal";
 
-export default function DeleteSchoolButton({ schoolId }: { schoolId: string }) {
+export default function DeleteSchoolButton({ schoolId, schoolName }: { schoolId: string; schoolName: string }) {
   const router = useRouter();
-  const [confirming, setConfirming] = useState(false);
+  const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  if (!confirming) {
-    return (
-      <button onClick={() => setConfirming(true)} className={`${btnDangerOutline} !px-4 !py-2`}>
-        Delete
-      </button>
-    );
+  async function handleDelete() {
+    setDeleting(true);
+    const res = await fetch(`/api/schools/${schoolId}`, { method: "DELETE" });
+    if (res.ok) {
+      router.push("/schools");
+      router.refresh();
+    } else {
+      setDeleting(false);
+    }
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-gray-600">Delete this school?</span>
-      <button
-        disabled={deleting}
-        onClick={async () => {
-          setDeleting(true);
-          const res = await fetch(`/api/schools/${schoolId}`, { method: "DELETE" });
-          if (res.ok) {
-            router.push("/schools");
-            router.refresh();
-          } else {
-            setDeleting(false);
-          }
-        }}
-        className={`${btnDanger} !px-4 !py-2`}
-      >
-        {deleting ? "Deleting…" : "Confirm"}
+    <>
+      <button onClick={() => setOpen(true)} className={`${btnDangerOutline} !px-4 !py-2`}>
+        Delete
       </button>
-      <button onClick={() => setConfirming(false)} className={btnGhost}>
-        Cancel
-      </button>
-    </div>
+      <Modal open={open} onClose={() => setOpen(false)} title="Delete this school?">
+        <p className="text-sm text-gray-600">
+          This permanently removes <span className="font-medium text-gray-900">{schoolName}</span> and every round,
+          requirement, scholarship, and checklist entry under it. This can&apos;t be undone.
+        </p>
+        <div className="mt-6 flex justify-end gap-2">
+          <button onClick={() => setOpen(false)} className={btnGhost}>
+            Cancel
+          </button>
+          <button onClick={handleDelete} disabled={deleting} className={`${btnDanger} !px-4 !py-2`}>
+            {deleting ? "Deleting…" : "Delete school"}
+          </button>
+        </div>
+      </Modal>
+    </>
   );
 }

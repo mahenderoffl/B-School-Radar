@@ -29,7 +29,4 @@ export const tableCard = "overflow-hidden rounded-2xl bg-white shadow-sm ring-1 
 export const inputClass =
   "w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 transition-colors duration-150 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10";
 
-export const checkbox =
-  "h-4 w-4 rounded border-gray-300 text-blue-600 transition-colors focus:ring-2 focus:ring-blue-500/40 focus:ring-offset-0";
-
 export const link = `text-blue-600 transition-colors hover:text-blue-700 ${focusRing} rounded-sm`;

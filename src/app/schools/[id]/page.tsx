@@ -43,7 +43,7 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
           <Link href={`/schools/${school.id}/edit`} className={`${btnSecondary} !px-4 !py-2`}>
             Edit
           </Link>
-          <DeleteSchoolButton schoolId={school.id} />
+          <DeleteSchoolButton schoolId={school.id} schoolName={school.name} />
         </div>
       </div>
 

@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { RoundInfo } from "@/lib/checklist";
-import { card, checkbox } from "@/lib/ui";
+import { card } from "@/lib/ui";
+import Checkbox from "@/components/Checkbox";
 
 export default function ChecklistBoard({ rounds }: { rounds: RoundInfo[] }) {
   const [data, setData] = useState(rounds);
@@ -53,23 +54,27 @@ export default function ChecklistBoard({ rounds }: { rounds: RoundInfo[] }) {
     <div className="flex flex-col gap-6">
       {grouped.map(([label, items]) => {
         const doneCount = items.filter((i) => i.done).length;
+        const progress = Math.round((doneCount / items.length) * 100);
         return (
-          <section key={label} className={card}>
-            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3.5">
-              <h3 className="font-semibold tracking-tight text-gray-900">{label}</h3>
-              <span className="text-xs font-medium text-gray-500">
-                {doneCount}/{items.length} done
-              </span>
+          <section key={label} className={`${card} overflow-hidden`}>
+            <div className="px-4 pt-3.5 pb-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold tracking-tight text-gray-900">{label}</h3>
+                <span className="text-xs font-medium text-gray-500">
+                  {doneCount}/{items.length} done
+                </span>
+              </div>
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                <div
+                  className="h-full rounded-full bg-blue-600 transition-[width] duration-500 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
             </div>
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-gray-100 border-t border-gray-100">
               {items.map((item) => (
-                <li key={`${item.roundId}-${item.itemId}`} className="flex items-center gap-3 px-4 py-2.5 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={item.done}
-                    onChange={() => toggle(item.roundId, item.itemId)}
-                    className={checkbox}
-                  />
+                <li key={`${item.roundId}-${item.itemId}`} className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-gray-50/60">
+                  <Checkbox checked={item.done} onChange={() => toggle(item.roundId, item.itemId)} />
                   <Link
                     href={`/schools/${item.schoolId}`}
                     className={`flex-1 transition-colors ${item.done ? "text-gray-400 line-through" : "text-gray-800 hover:text-blue-600"}`}
