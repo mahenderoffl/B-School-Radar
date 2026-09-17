@@ -61,6 +61,10 @@ export async function getSchoolById(id: string) {
   });
 }
 
+export function getSchoolCount() {
+  return prisma.school.count();
+}
+
 export function nextOpenRound(rounds: { deadlineDate: Date }[]) {
   const now = new Date();
   const upcoming = rounds

@@ -5,10 +5,14 @@ and a per-school checklist — so you don't have to keep it all in a spreadsheet
 
 ## What it does
 
+- **Landing page** (`/`) — a static overview of what the app does, with a link into
+  the app. Everything below lives under `/dashboard`, `/schools`, `/checklist`, and
+  `/data`, sharing one navigation shell.
 - **Dashboard** — every open application round and scholarship deadline across all
-  schools, sorted by how soon it closes and color-coded by urgency.
-- **Schools** — a table of every school you're tracking with its next deadline, test
-  requirements, and next scholarship deadline at a glance.
+  schools, sorted by how soon it closes and color-coded by urgency. The summary cards
+  are clickable filters.
+- **Schools** — a searchable table of every school you're tracking with its next
+  deadline, test requirements, and next scholarship deadline at a glance.
 - **School detail** — full breakdown per school: program info, requirements
   (GMAT/GRE/IELTS/TOEFL/ieGAT, with waiver notes), scholarships, and every round with
   an editable status + checklist.
@@ -18,6 +22,9 @@ and a per-school checklist — so you don't have to keep it all in a spreadsheet
 - **Add / edit school** — a form for entering a school's current-cycle data yourself;
   there's no reliable API for this, so the intended workflow is a manual seed that you
   re-verify against each school's official admissions page every cycle.
+- **Data** (`/data`) — export everything as one JSON file, or import a previously
+  exported file (merging into existing data, or wiping and replacing it). Useful as a
+  backup, or for moving data to a different deployment.
 
 ## Tech stack
 

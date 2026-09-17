@@ -1,76 +1,100 @@
 import Link from "next/link";
-import { getRoundFeed, getScholarshipFeed } from "@/lib/queries";
-import { daysUntil, formatDate } from "@/lib/utils";
-import { tableCard, link } from "@/lib/ui";
-import DeadlineBadge from "@/components/DeadlineBadge";
-import DashboardRoundsBoard, { type RoundRow } from "@/components/DashboardRoundsBoard";
-import EmptyState from "@/components/EmptyState";
+import { btnPrimary, btnSecondary, card } from "@/lib/ui";
 
-export const dynamic = "force-dynamic";
+const features = [
+  {
+    title: "Deadline tracking",
+    body: "Every round across every school, sorted by how soon it closes and color-coded by urgency — nothing buried in a spreadsheet tab.",
+  },
+  {
+    title: "Application checklist",
+    body: "Test scores, essays, LORs, transcripts, fees — tracked per round, and grouped across schools so one task's status is visible everywhere it applies.",
+  },
+  {
+    title: "Requirements & scholarships",
+    body: "GMAT/GRE/IELTS/TOEFL waivers, minimum scores, and every scholarship deadline and form requirement, per program.",
+  },
+  {
+    title: "Import & export",
+    body: "Your whole dataset as one JSON file — back it up, or move it to another deployment whenever you need to.",
+  },
+];
 
-export default async function DashboardPage() {
-  const [rounds, scholarships] = await Promise.all([getRoundFeed(), getScholarshipFeed()]);
+const steps = [
+  { n: "1", title: "Add your schools", body: "Enter each school's current-cycle rounds, requirements, and scholarships from its admissions page." },
+  { n: "2", title: "Watch the dashboard", body: "Everything open, sorted by days remaining, so you always know what needs attention next." },
+  { n: "3", title: "Check things off", body: "Mark tasks and statuses as you go — per round, or across every school at once from the checklist view." },
+];
 
-  const openRounds = rounds
-    .filter((r) => daysUntil(r.deadlineDate) >= 0)
-    .filter((r) => r.applicationStatus?.status !== "SUBMITTED" && r.applicationStatus?.status !== "REJECTED");
-
-  const roundRows: RoundRow[] = openRounds.map((r) => ({
-    id: r.id,
-    schoolId: r.intake.program.school.id,
-    schoolName: r.intake.program.school.name,
-    programName: r.intake.program.name,
-    roundNumber: r.roundNumber,
-    deadlineDate: r.deadlineDate.toISOString(),
-    status: r.applicationStatus?.status ?? "NOT_STARTED",
-  }));
-
-  const openScholarships = scholarships.filter((s) => s.deadlineDate && daysUntil(s.deadlineDate) >= 0);
-
+export default function LandingPage() {
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
-        <p className="mt-1.5 text-[15px] text-gray-500">Every open application round, sorted by how soon it closes.</p>
-      </div>
+    <div className="flex flex-1 flex-col">
+      <header className="border-b border-black/5 bg-white/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+          <span className="flex items-center gap-2 font-semibold tracking-tight text-gray-900">
+            <span aria-hidden className="text-xl">🎯</span>
+            B-School Radar
+          </span>
+          <Link href="/dashboard" className={`${btnPrimary} !px-4 !py-2`}>
+            Open Dashboard
+          </Link>
+        </div>
+      </header>
 
-      <DashboardRoundsBoard rounds={roundRows} scholarshipCount={openScholarships.length} />
-
-      <section id="scholarships" className="scroll-mt-20">
-        <h2 className="mb-3 text-lg font-semibold tracking-tight text-gray-900">Scholarship deadlines</h2>
-        {openScholarships.length === 0 ? (
-          <EmptyState text="No open scholarship deadlines." />
-        ) : (
-          <div className={tableCard}>
-            <table className="min-w-full divide-y divide-gray-100 text-sm">
-              <thead className="bg-gray-50/80 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                <tr>
-                  <th className="px-4 py-3">School</th>
-                  <th className="px-4 py-3">Scholarship</th>
-                  <th className="px-4 py-3">Deadline</th>
-                  <th className="px-4 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {openScholarships.map((s) => (
-                  <tr key={s.id} className="transition-colors hover:bg-gray-50/80">
-                    <td className="px-4 py-3 font-medium text-gray-900">
-                      <Link href={`/schools/${s.program.school.id}`} className={link}>
-                        {s.program.school.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{s.name}</td>
-                    <td className="px-4 py-3 text-gray-600">{formatDate(s.deadlineDate)}</td>
-                    <td className="px-4 py-3 text-right">
-                      <DeadlineBadge date={s.deadlineDate!} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <main className="flex-1">
+        <section className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 sm:py-28">
+          <h1 className="animate-fade-in-up text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
+            Never miss an MBA application deadline.
+          </h1>
+          <p
+            className="animate-fade-in-up mt-5 text-lg text-gray-500"
+            style={{ animationDelay: "80ms" }}
+          >
+            Every school, every round, every requirement and scholarship — tracked in one place, with a checklist
+            that follows you from &quot;not started&quot; to submitted.
+          </p>
+          <div className="animate-fade-in-up mt-8 flex items-center justify-center gap-3" style={{ animationDelay: "140ms" }}>
+            <Link href="/dashboard" className={btnPrimary}>
+              Open Dashboard
+            </Link>
+            <Link href="/schools" className={btnSecondary}>
+              View schools
+            </Link>
           </div>
-        )}
-      </section>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {features.map((f) => (
+              <div key={f.title} className={`${card} p-6`}>
+                <h2 className="text-base font-semibold tracking-tight text-gray-900">{f.title}</h2>
+                <p className="mt-1.5 text-sm leading-relaxed text-gray-500">{f.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="border-t border-black/5 bg-white/60">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+            <h2 className="text-center text-2xl font-semibold tracking-tight text-gray-900">How it works</h2>
+            <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-3">
+              {steps.map((s) => (
+                <div key={s.n} className="text-center">
+                  <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
+                    {s.n}
+                  </div>
+                  <h3 className="mt-3 text-base font-semibold tracking-tight text-gray-900">{s.title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-gray-500">{s.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-black/5 px-4 py-8 text-center text-sm text-gray-400 sm:px-6">
+        Built for tracking your own applications — not a product, just a tool.
+      </footer>
     </div>
   );
 }

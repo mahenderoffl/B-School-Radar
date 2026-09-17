@@ -5,9 +5,10 @@ import { usePathname } from "next/navigation";
 import { btnPrimary } from "@/lib/ui";
 
 const links = [
-  { href: "/", label: "Dashboard" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/schools", label: "Schools" },
   { href: "/checklist", label: "Checklist" },
+  { href: "/data", label: "Data" },
 ];
 
 export default function Nav() {
@@ -17,7 +18,7 @@ export default function Nav() {
     <header className="sticky top-0 z-20 border-b border-black/5 bg-white/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <Link
-          href="/"
+          href="/dashboard"
           className="flex items-center gap-2 rounded-sm font-semibold tracking-tight text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
         >
           <span aria-hidden className="text-xl">🎯</span>
@@ -25,7 +26,7 @@ export default function Nav() {
         </Link>
         <nav className="flex items-center gap-1">
           {links.map((l) => {
-            const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
+            const active = pathname.startsWith(l.href);
             return (
               <Link
                 key={l.href}
