@@ -5,6 +5,7 @@ import { tableCard, link } from "@/lib/ui";
 import DeadlineBadge from "@/components/DeadlineBadge";
 import DashboardRoundsBoard, { type RoundRow } from "@/components/DashboardRoundsBoard";
 import EmptyState from "@/components/EmptyState";
+import SchoolLogo from "@/components/SchoolLogo";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export default async function DashboardPage() {
     id: r.id,
     schoolId: r.intake.program.school.id,
     schoolName: r.intake.program.school.name,
+    schoolWebsite: r.intake.program.school.website,
     programName: r.intake.program.name,
     roundNumber: r.roundNumber,
     deadlineDate: r.deadlineDate.toISOString(),
@@ -55,8 +57,9 @@ export default async function DashboardPage() {
                 {openScholarships.map((s) => (
                   <tr key={s.id} className="transition-colors hover:bg-gray-50/80">
                     <td className="px-4 py-3 font-medium text-gray-900">
-                      <Link href={`/schools/${s.program.school.id}`} className={link}>
-                        {s.program.school.name}
+                      <Link href={`/schools/${s.program.school.id}`} className="flex items-center gap-2.5">
+                        <SchoolLogo name={s.program.school.name} website={s.program.school.website} size={22} />
+                        <span className={link}>{s.program.school.name}</span>
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-gray-600">{s.name}</td>

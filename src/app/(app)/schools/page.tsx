@@ -24,6 +24,7 @@ export default async function SchoolsPage() {
       name: school.name,
       city: school.city,
       country: school.country,
+      website: school.website,
       nextDeadline: next ? next.deadlineDate.toISOString() : null,
       requirements: requirements.map((r) => ({
         id: r.id,

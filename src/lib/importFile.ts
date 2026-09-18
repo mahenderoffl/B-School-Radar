@@ -70,6 +70,8 @@ const HEADER_ALIASES = {
   deadline_date: ["deadline_date", "deadline"],
   decision_date: ["decision_date", "decision"],
   round_notes: ["round_notes", "notes"],
+  requirements: ["requirements", "requirement", "tests"],
+  scholarships: ["scholarships", "scholarship"],
 } as const;
 
 type Field = keyof typeof HEADER_ALIASES;
@@ -92,6 +94,8 @@ function field(row: Record<string, string>, name: Field): string {
 
 type RoundRow = { roundNumber: number; deadlineDate: string; decisionDate?: string; notes?: string };
 type IntakeGroup = { startMonth: number; startYear: number; rounds: RoundRow[] };
+type RequirementRow = { type: string; mandatory: boolean; minScore?: number; waiverCondition?: string };
+type ScholarshipRow = { name: string; type: string; amountPct?: number; deadlineDate?: string; requiresSeparateForm: boolean };
 type ProgramGroup = {
   name: string;
   format: string;
@@ -99,7 +103,46 @@ type ProgramGroup = {
   tuition?: number;
   currency: string;
   intakes: Map<string, IntakeGroup>;
+  requirements: Map<string, RequirementRow>;
+  scholarships: Map<string, ScholarshipRow>;
 };
+
+// requirements cell: "TYPE|MANDATORY(Y/N)|MIN_SCORE|WAIVER_NOTE" entries, ';'-separated
+function parseRequirementsCell(raw: string): RequirementRow[] {
+  if (!raw.trim()) return [];
+  return raw
+    .split(";")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const [type, mandatoryFlag, minScore, waiverCondition] = entry.split("|").map((s) => s.trim());
+      return {
+        type: (type || "OTHER").toUpperCase(),
+        mandatory: mandatoryFlag ? mandatoryFlag.toUpperCase() === "Y" : true,
+        minScore: minScore ? Number(minScore) : undefined,
+        waiverCondition: waiverCondition || undefined,
+      };
+    });
+}
+
+// scholarships cell: "NAME|TYPE|AMOUNT_PCT|DEADLINE|SEPARATE_FORM(Y/N)" entries, ';'-separated
+function parseScholarshipsCell(raw: string): ScholarshipRow[] {
+  if (!raw.trim()) return [];
+  return raw
+    .split(";")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const [name, type, amountPct, deadlineDate, separateForm] = entry.split("|").map((s) => s.trim());
+      return {
+        name: name || "Scholarship",
+        type: (type || "OTHER").toUpperCase(),
+        amountPct: amountPct ? Number(amountPct) : undefined,
+        deadlineDate: deadlineDate || undefined,
+        requiresSeparateForm: separateForm ? separateForm.toUpperCase() === "Y" : false,
+      };
+    });
+}
 type SchoolGroup = {
   name: string;
   country: string;
@@ -110,10 +153,9 @@ type SchoolGroup = {
 };
 
 /**
- * Rows are one-round-per-row; school/program-level fields repeat across a
- * school's rows and get grouped back together. Requirements and
- * scholarships aren't representable in this flat format — add those
- * afterward via the school's edit screen or a JSON import.
+ * Rows are one-round-per-row; school/program-level fields (including the
+ * requirements/scholarships cells) repeat across a school's rows and get
+ * grouped back together, deduped by content.
  */
 export function rowsToSchools(rawRows: Record<string, string>[]) {
   const rows = rawRows.map((r) => {
@@ -151,8 +193,19 @@ export function rowsToSchools(rawRows: Record<string, string>[]) {
         tuition: field(row, "tuition") ? Number(field(row, "tuition")) : undefined,
         currency: field(row, "currency") || "USD",
         intakes: new Map(),
+        requirements: new Map(),
+        scholarships: new Map(),
       };
       school.programs.set(programName, program);
+    }
+
+    // Same requirements/scholarships text typically repeats across a
+    // school's rows (one per round); dedupe by content so it's only added once.
+    for (const req of parseRequirementsCell(field(row, "requirements"))) {
+      program.requirements.set(JSON.stringify(req), req);
+    }
+    for (const sch of parseScholarshipsCell(field(row, "scholarships"))) {
+      program.scholarships.set(JSON.stringify(sch), sch);
     }
 
     const intakeMonth = Number(field(row, "intake_month"));
@@ -189,11 +242,8 @@ export function rowsToSchools(rawRows: Record<string, string>[]) {
       tuition: p.tuition,
       currency: p.currency,
       intakes: Array.from(p.intakes.values()),
+      requirements: Array.from(p.requirements.values()),
+      scholarships: Array.from(p.scholarships.values()),
     })),
   }));
 }
-
-export const CSV_TEMPLATE = `school_name,country,city,global_ranking,website,program_name,program_format,duration_months,tuition,currency,intake_month,intake_year,round_number,deadline_date,decision_date,round_notes
-Stanford GSB,United States,"Stanford, CA",2,https://www.gsb.stanford.edu/programs/mba,MBA,FULL_TIME,21,84000,USD,9,2027,1,2026-09-15,2026-12-11,
-Stanford GSB,United States,"Stanford, CA",2,https://www.gsb.stanford.edu/programs/mba,MBA,FULL_TIME,21,84000,USD,9,2027,2,2027-01-06,2027-03-24,
-`;

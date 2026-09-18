@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { CSV_TEMPLATE } from "@/lib/importFile";
+import { CSV_TEMPLATE } from "@/lib/csvTemplate";
 
 export async function GET() {
   return new NextResponse(CSV_TEMPLATE, {

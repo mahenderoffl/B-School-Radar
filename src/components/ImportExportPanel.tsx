@@ -7,6 +7,7 @@ import Checkbox from "@/components/Checkbox";
 import Modal from "@/components/Modal";
 import { downloadCsvTemplate } from "@/lib/downloadTemplate";
 import { submitImport } from "@/lib/submitImport";
+import ResearchPromptHelper from "@/components/ResearchPromptHelper";
 
 type Status = { type: "success" | "error"; message: string } | null;
 
@@ -65,12 +66,15 @@ export default function ImportExportPanel() {
         <p className="mt-1 text-sm text-gray-500">
           Upload a <code className="text-xs">.json</code> file previously downloaded from Export, or a{" "}
           <code className="text-xs">.csv</code>/<code className="text-xs">.xlsx</code>/<code className="text-xs">.xls</code>{" "}
-          spreadsheet of deadlines (one row per round) — or paste JSON or CSV text directly. Imported schools get new
-          IDs, so this is safe to run more than once.
+          spreadsheet of deadlines, test requirements, and scholarships (one row per round) — or paste JSON or CSV
+          text directly. Imported schools get new IDs, so this is safe to run more than once.
         </p>
-        <button type="button" onClick={downloadCsvTemplate} className={`mt-2 text-sm font-medium ${link}`}>
+        <button type="button" onClick={downloadCsvTemplate} className={`mt-2 block text-sm font-medium ${link}`}>
           Download CSV template
         </button>
+        <div className="mt-2">
+          <ResearchPromptHelper />
+        </div>
 
         <div className="mt-4 flex flex-col gap-4">
           <div>

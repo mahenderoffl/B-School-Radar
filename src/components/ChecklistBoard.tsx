@@ -5,12 +5,16 @@ import Link from "next/link";
 import type { RoundInfo } from "@/lib/checklist";
 import { card } from "@/lib/ui";
 import Checkbox from "@/components/Checkbox";
+import SchoolLogo from "@/components/SchoolLogo";
 
 export default function ChecklistBoard({ rounds }: { rounds: RoundInfo[] }) {
   const [data, setData] = useState(rounds);
 
   const grouped = useMemo(() => {
-    const map = new Map<string, { roundId: string; schoolId: string; schoolName: string; programName: string; roundNumber: number; itemId: string; done: boolean }[]>();
+    const map = new Map<
+      string,
+      { roundId: string; schoolId: string; schoolName: string; schoolWebsite: string | null; programName: string; roundNumber: number; itemId: string; done: boolean }[]
+    >();
     for (const round of data) {
       for (const item of round.checklist) {
         const list = map.get(item.label) ?? [];
@@ -18,6 +22,7 @@ export default function ChecklistBoard({ rounds }: { rounds: RoundInfo[] }) {
           roundId: round.roundId,
           schoolId: round.schoolId,
           schoolName: round.schoolName,
+          schoolWebsite: round.schoolWebsite,
           programName: round.programName,
           roundNumber: round.roundNumber,
           itemId: item.id,
@@ -77,8 +82,9 @@ export default function ChecklistBoard({ rounds }: { rounds: RoundInfo[] }) {
                   <Checkbox checked={item.done} onChange={() => toggle(item.roundId, item.itemId)} />
                   <Link
                     href={`/schools/${item.schoolId}`}
-                    className={`flex-1 transition-colors ${item.done ? "text-gray-400 line-through" : "text-gray-800 hover:text-blue-600"}`}
+                    className={`flex flex-1 items-center gap-2.5 transition-colors ${item.done ? "text-gray-400 line-through" : "text-gray-800 hover:text-blue-600"}`}
                   >
+                    <SchoolLogo name={item.schoolName} website={item.schoolWebsite} size={20} />
                     {item.schoolName}
                   </Link>
                   <span className="text-xs text-gray-400">

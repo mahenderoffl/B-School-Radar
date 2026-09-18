@@ -6,12 +6,14 @@ import { formatDate } from "@/lib/utils";
 import { tableCard, inputClass, link } from "@/lib/ui";
 import DeadlineBadge from "@/components/DeadlineBadge";
 import EmptyState from "@/components/EmptyState";
+import SchoolLogo from "@/components/SchoolLogo";
 
 export type SchoolRow = {
   id: string;
   name: string;
   city: string;
   country: string;
+  website: string | null;
   nextDeadline: string | null;
   requirements: { id: string; label: string; waivable: boolean; waiverCondition: string | null }[];
   nextScholarshipDeadline: string | null;
@@ -69,11 +71,16 @@ export default function SchoolsTable({ schools }: { schools: SchoolRow[] }) {
                   style={{ animationDelay: `${Math.min(i, 8) * 20}ms` }}
                 >
                   <td className="px-4 py-3">
-                    <Link href={`/schools/${school.id}`} className="font-medium text-gray-900 transition-colors hover:text-blue-600">
-                      {school.name}
-                    </Link>
-                    <div className="text-xs text-gray-500">
-                      {school.city}, {school.country}
+                    <div className="flex items-center gap-3">
+                      <SchoolLogo name={school.name} website={school.website} size={28} />
+                      <div>
+                        <Link href={`/schools/${school.id}`} className="font-medium text-gray-900 transition-colors hover:text-blue-600">
+                          {school.name}
+                        </Link>
+                        <div className="text-xs text-gray-500">
+                          {school.city}, {school.country}
+                        </div>
+                      </div>
                     </div>
                   </td>
                   <td className="px-4 py-3">

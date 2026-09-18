@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { btnPrimary, card, inputClass, link } from "@/lib/ui";
 import { downloadCsvTemplate } from "@/lib/downloadTemplate";
 import { submitImport } from "@/lib/submitImport";
+import ResearchPromptHelper from "@/components/ResearchPromptHelper";
 
 const EXAMPLE = `{
   "name": "Stanford GSB",
@@ -122,6 +123,8 @@ export default function ImportSchoolForm() {
           <code>{EXAMPLE}</code>
         </pre>
       )}
+
+      <ResearchPromptHelper />
 
       {status && (
         <p className={`text-sm font-medium ${status.type === "success" ? "text-emerald-600" : "text-red-600"}`}>

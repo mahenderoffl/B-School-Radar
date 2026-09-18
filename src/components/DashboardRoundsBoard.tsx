@@ -6,11 +6,13 @@ import { formatDate, getUrgency, APPLICATION_STAGE_LABELS, APPLICATION_STAGE_CLA
 import { tableCard, link } from "@/lib/ui";
 import DeadlineBadge from "@/components/DeadlineBadge";
 import EmptyState from "@/components/EmptyState";
+import SchoolLogo from "@/components/SchoolLogo";
 
 export type RoundRow = {
   id: string;
   schoolId: string;
   schoolName: string;
+  schoolWebsite: string | null;
   programName: string;
   roundNumber: number;
   deadlineDate: string;
@@ -102,8 +104,9 @@ export default function DashboardRoundsBoard({
                     style={{ animationDelay: `${Math.min(i, 8) * 25}ms` }}
                   >
                     <td className="px-4 py-3 font-medium text-gray-900">
-                      <Link href={`/schools/${r.schoolId}`} className={link}>
-                        {r.schoolName}
+                      <Link href={`/schools/${r.schoolId}`} className="flex items-center gap-2.5">
+                        <SchoolLogo name={r.schoolName} website={r.schoolWebsite} size={22} />
+                        <span className={link}>{r.schoolName}</span>
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-gray-600">{r.programName}</td>

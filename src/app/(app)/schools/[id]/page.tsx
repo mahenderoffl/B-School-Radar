@@ -11,6 +11,7 @@ import {
 import DeadlineBadge from "@/components/DeadlineBadge";
 import RoundStatusPanel from "@/components/RoundStatusPanel";
 import DeleteSchoolButton from "@/components/DeleteSchoolButton";
+import SchoolLogo from "@/components/SchoolLogo";
 import { btnSecondary, card, link } from "@/lib/ui";
 
 export default async function SchoolDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,23 +22,26 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-start justify-between">
-        <div>
-          <Link href="/schools" className="text-sm text-gray-500 transition-colors hover:text-gray-900">
-            ← All schools
-          </Link>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{school.name}</h1>
-          <p className="mt-1.5 text-[15px] text-gray-500">
-            {school.city}, {school.country}
-            {school.globalRanking ? ` · Rank #${school.globalRanking}` : ""}
-            {school.website && (
-              <>
-                {" · "}
-                <a href={school.website} target="_blank" rel="noreferrer" className={link}>
-                  Website ↗
-                </a>
-              </>
-            )}
-          </p>
+        <div className="flex items-start gap-4">
+          <SchoolLogo name={school.name} website={school.website} size={56} className="mt-1" />
+          <div>
+            <Link href="/schools" className="text-sm text-gray-500 transition-colors hover:text-gray-900">
+              ← All schools
+            </Link>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{school.name}</h1>
+            <p className="mt-1.5 text-[15px] text-gray-500">
+              {school.city}, {school.country}
+              {school.globalRanking ? ` · Rank #${school.globalRanking}` : ""}
+              {school.website && (
+                <>
+                  {" · "}
+                  <a href={school.website} target="_blank" rel="noreferrer" className={link}>
+                    Website ↗
+                  </a>
+                </>
+              )}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <a href={`/api/schools/${school.id}/export`} download className={`${btnSecondary} !px-4 !py-2`}>
