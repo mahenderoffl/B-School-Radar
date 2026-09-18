@@ -1,4 +1,12 @@
 import { prisma } from "@/lib/db";
+import {
+  PROGRAM_FORMATS,
+  INTAKE_STATUSES,
+  REQUIREMENT_TYPES,
+  SCHOLARSHIP_TYPES,
+  APPLICATION_STAGES,
+  normalizeEnumGuess,
+} from "@/lib/enums";
 
 export const EXPORT_VERSION = 1;
 
@@ -59,8 +67,7 @@ function requireEnum<T extends string>(value: unknown, allowed: readonly T[], fi
   if (value == null || value === "") {
     throw new ImportValidationError(`Missing "${field}" — must be one of ${allowed.join(", ")}`);
   }
-  const normalized =
-    typeof value === "string" ? value.trim().toUpperCase().replace(/[\s-]+/g, "_") : String(value);
+  const normalized = typeof value === "string" ? normalizeEnumGuess(value) : String(value);
   if (!allowed.includes(normalized as T)) {
     throw new ImportValidationError(
       `Invalid "${field}": "${String(value)}" — must be one of ${allowed.join(", ")}`
@@ -96,19 +103,6 @@ function optionalDate(value: unknown, field: string): Date | null {
   }
   return date;
 }
-
-const PROGRAM_FORMATS = ["FULL_TIME", "PART_TIME", "EXECUTIVE", "ONLINE"] as const;
-const INTAKE_STATUSES = ["UPCOMING", "OPEN", "CLOSED"] as const;
-const REQUIREMENT_TYPES = ["GMAT", "GRE", "IELTS", "TOEFL", "IEGAT", "OTHER"] as const;
-const SCHOLARSHIP_TYPES = ["MERIT", "NEED", "DIVERSITY", "OTHER"] as const;
-const APPLICATION_STAGES = [
-  "NOT_STARTED",
-  "IN_PROGRESS",
-  "SUBMITTED",
-  "WAITLISTED",
-  "ADMITTED",
-  "REJECTED",
-] as const;
 
 export { ImportValidationError };
 

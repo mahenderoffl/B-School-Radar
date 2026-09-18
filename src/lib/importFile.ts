@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs";
 import { Readable } from "node:stream";
+import { REQUIREMENT_TYPES, SCHOLARSHIP_TYPES, normalizeEnumGuess } from "@/lib/enums";
 
 function cellToString(value: ExcelJS.CellValue): string {
   if (value == null) return "";
@@ -107,25 +108,47 @@ type ProgramGroup = {
   scholarships: Map<string, ScholarshipRow>;
 };
 
-// requirements cell: "TYPE|MANDATORY(Y/N)|MIN_SCORE|WAIVER_NOTE" entries, ';'-separated
+// requirements cell: "TYPE|MANDATORY(Y/N)|MIN_SCORE|WAIVER_NOTE" entries, ';'-separated.
+// Free-text notes can contain a stray ';' of their own (e.g. "GMAT or GRE
+// accepted; no minimum score"), which would otherwise split into a second,
+// bogus entry with no real TYPE and no '|' at all. A chunk with no '|' can
+// never be a genuine entry (a bare word essentially never matches a test
+// type), so fold it back into the previous entry's waiver note. A chunk
+// that does have the TYPE|... shape but an unrecognized type is kept as
+// OTHER instead, preserving the original label rather than discarding it.
 function parseRequirementsCell(raw: string): RequirementRow[] {
   if (!raw.trim()) return [];
-  return raw
-    .split(";")
-    .map((entry) => entry.trim())
-    .filter(Boolean)
-    .map((entry) => {
-      const [type, mandatoryFlag, minScore, waiverCondition] = entry.split("|").map((s) => s.trim());
-      return {
-        type: (type || "OTHER").toUpperCase(),
-        mandatory: mandatoryFlag ? mandatoryFlag.toUpperCase() === "Y" : true,
-        minScore: minScore ? Number(minScore) : undefined,
-        waiverCondition: waiverCondition || undefined,
-      };
-    });
+  const result: RequirementRow[] = [];
+  for (const entry of raw.split(";").map((e) => e.trim()).filter(Boolean)) {
+    const hasStructure = entry.includes("|");
+    const [typeRaw, mandatoryFlag, minScore, waiverCondition] = entry.split("|").map((s) => s.trim());
+    const type = typeRaw ? normalizeEnumGuess(typeRaw) : "";
+    const mandatory = mandatoryFlag ? mandatoryFlag.toUpperCase() === "Y" : true;
+    const scoreValue = minScore ? Number(minScore) : undefined;
+
+    if ((REQUIREMENT_TYPES as readonly string[]).includes(type)) {
+      result.push({ type, mandatory, minScore: scoreValue, waiverCondition: waiverCondition || undefined });
+    } else if (hasStructure) {
+      result.push({
+        type: "OTHER",
+        mandatory,
+        minScore: scoreValue,
+        waiverCondition: [typeRaw, waiverCondition].filter(Boolean).join(" — ") || undefined,
+      });
+    } else if (result.length > 0) {
+      const prev = result[result.length - 1];
+      prev.waiverCondition = prev.waiverCondition ? `${prev.waiverCondition}; ${entry}` : entry;
+    } else {
+      result.push({ type: "OTHER", mandatory: true, waiverCondition: entry });
+    }
+  }
+  return result;
 }
 
-// scholarships cell: "NAME|TYPE|AMOUNT_PCT|DEADLINE|SEPARATE_FORM(Y/N)" entries, ';'-separated
+// scholarships cell: "NAME|TYPE|AMOUNT_PCT|DEADLINE|SEPARATE_FORM(Y/N)" entries, ';'-separated.
+// Unlike requirements, a bare fragment can't reliably be told apart from a
+// legitimate name-only scholarship, so entries are always kept — an
+// unrecognized TYPE just falls back to OTHER instead of throwing.
 function parseScholarshipsCell(raw: string): ScholarshipRow[] {
   if (!raw.trim()) return [];
   return raw
@@ -133,10 +156,11 @@ function parseScholarshipsCell(raw: string): ScholarshipRow[] {
     .map((entry) => entry.trim())
     .filter(Boolean)
     .map((entry) => {
-      const [name, type, amountPct, deadlineDate, separateForm] = entry.split("|").map((s) => s.trim());
+      const [name, typeRaw, amountPct, deadlineDate, separateForm] = entry.split("|").map((s) => s.trim());
+      const type = typeRaw ? normalizeEnumGuess(typeRaw) : "";
       return {
         name: name || "Scholarship",
-        type: (type || "OTHER").toUpperCase(),
+        type: (SCHOLARSHIP_TYPES as readonly string[]).includes(type) ? type : "OTHER",
         amountPct: amountPct ? Number(amountPct) : undefined,
         deadlineDate: deadlineDate || undefined,
         requiresSeparateForm: separateForm ? separateForm.toUpperCase() === "Y" : false,
