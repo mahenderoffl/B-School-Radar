@@ -21,8 +21,10 @@ export default function SchoolLogo({
     if (!url) return;
     // A clean onError isn't guaranteed — some networks (ad blockers,
     // restrictive proxies) silently hang a blocked request instead of
-    // rejecting it, which would otherwise leave the logo stuck loading forever.
-    const timeout = setTimeout(() => setStatus((s) => (s === "loading" ? "failed" : s)), 4000);
+    // rejecting it, which would otherwise leave the logo stuck loading
+    // forever. Our own /api/logo resolver also does its own server-side
+    // fetch on a cache miss, so give it a bit more room than a plain image.
+    const timeout = setTimeout(() => setStatus((s) => (s === "loading" ? "failed" : s)), 7000);
     return () => clearTimeout(timeout);
   }, [url]);
 

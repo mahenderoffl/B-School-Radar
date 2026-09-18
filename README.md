@@ -31,8 +31,10 @@ and a per-school checklist — so you don't have to keep it all in a spreadsheet
   A CSV template and a copy-ready research prompt (paste into any LLM, paste its CSV
   output back in) are both one click away from either.
 - **Auto-detected logos** — every school gets a small logo next to its name wherever it
-  appears, derived from its website's domain with no lookup or upload needed. Falls back
-  to a colored initials badge if no logo can be found.
+  appears, derived from its website's domain with no lookup or upload needed. It reads
+  the school's own site for its real high-resolution icon (apple-touch-icon or the
+  largest `<link rel="icon">`) rather than a blurry 16px favicon, with a low-res favicon
+  fallback and then a colored initials badge if nothing can be found.
 
 ## Tech stack
 
@@ -84,10 +86,13 @@ any pending migrations automatically on every deploy, and `postinstall` runs
 Whenever you add a new Prisma migration, it's applied automatically the next time
 you deploy (or run `npx prisma migrate deploy` locally).
 
-**Optional: sharper logos.** School logos default to Google's public favicon service —
-free, no signup, works immediately. For higher-resolution logos, create a free account
-at [logo.dev](https://logo.dev), grab a publishable key, and set it as
-`NEXT_PUBLIC_LOGO_DEV_KEY` in Vercel's environment variables. Nothing else changes.
+**Optional: sharper logos.** School logos default to reading each school's own site for
+its real icon (apple-touch-icon or the largest declared `<link rel="icon">`, typically
+180–512px), falling back to Google's public favicon service if that fails — both free,
+no signup, work immediately. For guaranteed high-res logos regardless of what a school's
+site declares, create a free account at [logo.dev](https://logo.dev), grab a publishable
+key, and set it as `NEXT_PUBLIC_LOGO_DEV_KEY` in Vercel's environment variables. Nothing
+else changes.
 
 ## Keeping data current
 

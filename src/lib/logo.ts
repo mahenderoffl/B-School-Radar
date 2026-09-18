@@ -1,12 +1,12 @@
 /**
  * Derives a logo image URL from a school's website, no manual lookup needed.
  *
- * Uses Google's public favicon service by default — free, no signup, no API
- * key, and has been stable for years (unlike Clearbit's old logo.clearbit.com,
- * which shut down in December 2025). Favicons cap out at fairly low
- * resolution, so this is "good enough to identify a school at a glance," not
- * a crisp brand logo. For sharper logos, set NEXT_PUBLIC_LOGO_DEV_KEY (a free
- * publishable key from logo.dev) and this switches to their higher-res API.
+ * By default this points at /api/logo, our own resolver that reads the
+ * school's own site for its real apple-touch-icon / largest <link rel=icon>
+ * (typically 180-512px, so it stays sharp) instead of the low-resolution
+ * favicon.ico most sites actually serve — that's what made logos blurry
+ * before. If NEXT_PUBLIC_LOGO_DEV_KEY is set (a free publishable key from
+ * logo.dev), that higher-res API is used directly instead.
  */
 export function getSchoolLogoUrl(website: string | null | undefined, size = 64): string | null {
   const domain = extractDomain(website);
@@ -16,10 +16,10 @@ export function getSchoolLogoUrl(website: string | null | undefined, size = 64):
   if (logoDevKey) {
     return `https://img.logo.dev/${domain}?token=${logoDevKey}&size=${size}&format=png`;
   }
-  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${size}`;
+  return `/api/logo?domain=${encodeURIComponent(domain)}&size=${size}`;
 }
 
-function extractDomain(website: string | null | undefined): string | null {
+export function extractDomain(website: string | null | undefined): string | null {
   if (!website) return null;
   const withProtocol = /^https?:\/\//i.test(website) ? website : `https://${website}`;
   try {
