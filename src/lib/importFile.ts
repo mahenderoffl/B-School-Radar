@@ -63,8 +63,17 @@ const HEADER_ALIASES = {
   program_name: ["program_name", "program"],
   program_format: ["program_format", "format"],
   duration_months: ["duration_months", "duration"],
-  tuition: ["tuition"],
   currency: ["currency"],
+  tuition_year1: ["tuition_year1", "tuition_year_1", "tuition"],
+  tuition_year2: ["tuition_year2", "tuition_year_2"],
+  living_cost_year1: ["living_cost_year1", "living_cost_year_1", "living_cost"],
+  living_cost_year2: ["living_cost_year2", "living_cost_year_2"],
+  health_insurance: ["health_insurance", "insurance"],
+  application_fee: ["application_fee"],
+  visa_fee: ["visa_fee", "visa_immigration_fee"],
+  books_and_supplies: ["books_and_supplies", "books_supplies", "books"],
+  other_fees: ["other_fees"],
+  other_fees_note: ["other_fees_note", "other_fees_description"],
   intake_month: ["intake_month", "start_month"],
   intake_year: ["intake_year", "start_year"],
   round_number: ["round_number", "round"],
@@ -97,12 +106,24 @@ type RoundRow = { roundNumber: number; deadlineDate: string; decisionDate?: stri
 type IntakeGroup = { startMonth: number; startYear: number; rounds: RoundRow[] };
 type RequirementRow = { type: string; mandatory: boolean; minScore?: number; waiverCondition?: string };
 type ScholarshipRow = { name: string; type: string; amountPct?: number; deadlineDate?: string; requiresSeparateForm: boolean };
+type CostGroup = {
+  currency: string;
+  tuitionYear1?: number;
+  tuitionYear2?: number;
+  livingCostYear1?: number;
+  livingCostYear2?: number;
+  healthInsurance?: number;
+  applicationFee?: number;
+  visaFee?: number;
+  booksAndSupplies?: number;
+  otherFees?: number;
+  otherFeesNote?: string;
+};
 type ProgramGroup = {
   name: string;
   format: string;
   durationMonths?: number;
-  tuition?: number;
-  currency: string;
+  cost: CostGroup;
   intakes: Map<string, IntakeGroup>;
   requirements: Map<string, RequirementRow>;
   scholarships: Map<string, ScholarshipRow>;
@@ -210,12 +231,24 @@ export function rowsToSchools(rawRows: Record<string, string>[]) {
     const programName = field(row, "program_name") || "MBA";
     let program = school.programs.get(programName);
     if (!program) {
+      const num = (name: Field) => (field(row, name) ? Number(field(row, name)) : undefined);
       program = {
         name: programName,
         format: field(row, "program_format").toUpperCase().replace(/[\s-]+/g, "_") || "FULL_TIME",
-        durationMonths: field(row, "duration_months") ? Number(field(row, "duration_months")) : undefined,
-        tuition: field(row, "tuition") ? Number(field(row, "tuition")) : undefined,
-        currency: field(row, "currency") || "USD",
+        durationMonths: num("duration_months"),
+        cost: {
+          currency: field(row, "currency") || "USD",
+          tuitionYear1: num("tuition_year1"),
+          tuitionYear2: num("tuition_year2"),
+          livingCostYear1: num("living_cost_year1"),
+          livingCostYear2: num("living_cost_year2"),
+          healthInsurance: num("health_insurance"),
+          applicationFee: num("application_fee"),
+          visaFee: num("visa_fee"),
+          booksAndSupplies: num("books_and_supplies"),
+          otherFees: num("other_fees"),
+          otherFeesNote: field(row, "other_fees_note") || undefined,
+        },
         intakes: new Map(),
         requirements: new Map(),
         scholarships: new Map(),
@@ -263,8 +296,7 @@ export function rowsToSchools(rawRows: Record<string, string>[]) {
       name: p.name,
       format: p.format,
       durationMonths: p.durationMonths,
-      tuition: p.tuition,
-      currency: p.currency,
+      cost: p.cost,
       intakes: Array.from(p.intakes.values()),
       requirements: Array.from(p.requirements.values()),
       scholarships: Array.from(p.scholarships.values()),

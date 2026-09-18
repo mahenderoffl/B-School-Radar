@@ -18,8 +18,21 @@ export async function POST(req: NextRequest) {
           name: body.programName,
           format: body.programFormat,
           durationMonths: body.durationMonths ?? null,
-          tuition: body.tuition ?? null,
-          currency: body.currency || "USD",
+          cost: {
+            create: {
+              currency: body.cost.currency || "USD",
+              tuitionYear1: body.cost.tuitionYear1 ?? null,
+              tuitionYear2: body.cost.tuitionYear2 ?? null,
+              livingCostYear1: body.cost.livingCostYear1 ?? null,
+              livingCostYear2: body.cost.livingCostYear2 ?? null,
+              healthInsurance: body.cost.healthInsurance ?? null,
+              applicationFee: body.cost.applicationFee ?? null,
+              visaFee: body.cost.visaFee ?? null,
+              booksAndSupplies: body.cost.booksAndSupplies ?? null,
+              otherFees: body.cost.otherFees ?? null,
+              otherFeesNote: body.cost.otherFeesNote || null,
+            },
+          },
           requirements: {
             create: body.requirements.map((r) => ({
               type: r.type,

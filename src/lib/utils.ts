@@ -113,6 +113,58 @@ export const PROGRAM_FORMAT_LABELS: Record<string, string> = {
   ONLINE: "Online",
 };
 
+export type ProgramCostFields = {
+  currency: string;
+  tuitionYear1: number | null;
+  tuitionYear2: number | null;
+  livingCostYear1: number | null;
+  livingCostYear2: number | null;
+  healthInsurance: number | null;
+  applicationFee: number | null;
+  visaFee: number | null;
+  booksAndSupplies: number | null;
+  otherFees: number | null;
+  otherFeesNote?: string | null;
+};
+
+export const COST_LINE_LABELS: Record<
+  keyof Omit<ProgramCostFields, "currency" | "otherFeesNote">,
+  string
+> = {
+  tuitionYear1: "Tuition — Year 1",
+  tuitionYear2: "Tuition — Year 2",
+  livingCostYear1: "Living costs — Year 1 (est.)",
+  livingCostYear2: "Living costs — Year 2 (est.)",
+  healthInsurance: "Health insurance",
+  applicationFee: "Application fee",
+  visaFee: "Visa / immigration fee",
+  booksAndSupplies: "Books & supplies",
+  otherFees: "Other fees",
+};
+
+export function formatMoney(amount: number | null | undefined, currency: string): string {
+  if (amount == null) return "—";
+  return `${amount.toLocaleString()} ${currency}`;
+}
+
+/** Sums every cost line that's actually been entered — an honest estimate, not a guess at what's missing. */
+export function totalProgramCost(cost: ProgramCostFields | null | undefined): number | null {
+  if (!cost) return null;
+  const fields: (keyof typeof COST_LINE_LABELS)[] = [
+    "tuitionYear1",
+    "tuitionYear2",
+    "livingCostYear1",
+    "livingCostYear2",
+    "healthInsurance",
+    "applicationFee",
+    "visaFee",
+    "booksAndSupplies",
+    "otherFees",
+  ];
+  const values = fields.map((f) => cost[f]).filter((v): v is number => v != null);
+  return values.length > 0 ? values.reduce((a, b) => a + b, 0) : null;
+}
+
 export function parseChecklist(json: string): { id: string; label: string; done: boolean }[] {
   try {
     const parsed = JSON.parse(json);

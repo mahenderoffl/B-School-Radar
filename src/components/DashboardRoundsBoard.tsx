@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { formatDate, getUrgency, APPLICATION_STAGE_LABELS, APPLICATION_STAGE_CLASSES } from "@/lib/utils";
+import { formatDate, formatMonthYear, getUrgency, APPLICATION_STAGE_LABELS, APPLICATION_STAGE_CLASSES } from "@/lib/utils";
 import { tableCard, link } from "@/lib/ui";
 import DeadlineBadge from "@/components/DeadlineBadge";
 import EmptyState from "@/components/EmptyState";
@@ -15,7 +15,10 @@ export type RoundRow = {
   schoolWebsite: string | null;
   programName: string;
   roundNumber: number;
+  intakeMonth: number;
+  intakeYear: number;
   deadlineDate: string;
+  decisionDate: string | null;
   status: string;
 };
 
@@ -90,8 +93,10 @@ export default function DashboardRoundsBoard({
                 <tr>
                   <th className="px-4 py-3">School</th>
                   <th className="px-4 py-3">Program</th>
+                  <th className="px-4 py-3">Intake</th>
                   <th className="px-4 py-3">Round</th>
-                  <th className="px-4 py-3">Deadline</th>
+                  <th className="px-4 py-3">Application deadline</th>
+                  <th className="px-4 py-3">Decision date</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3"></th>
                 </tr>
@@ -110,8 +115,10 @@ export default function DashboardRoundsBoard({
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-gray-600">{r.programName}</td>
+                    <td className="px-4 py-3 text-gray-600">{formatMonthYear(r.intakeMonth, r.intakeYear)}</td>
                     <td className="px-4 py-3 text-gray-600">Round {r.roundNumber}</td>
                     <td className="px-4 py-3 text-gray-600">{formatDate(r.deadlineDate)}</td>
+                    <td className="px-4 py-3 text-gray-600">{r.decisionDate ? formatDate(r.decisionDate) : "—"}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${APPLICATION_STAGE_CLASSES[r.status]}`}>
                         {APPLICATION_STAGE_LABELS[r.status]}

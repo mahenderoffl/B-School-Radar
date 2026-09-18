@@ -18,8 +18,13 @@ const EXAMPLE = `{
       "name": "MBA",
       "format": "FULL_TIME",
       "durationMonths": 21,
-      "tuition": 84000,
-      "currency": "USD",
+      "cost": {
+        "currency": "USD",
+        "tuitionYear1": 84000,
+        "livingCostYear1": 32000,
+        "healthInsurance": 4500,
+        "applicationFee": 275
+      },
       "requirements": [
         { "type": "GMAT", "mandatory": false, "waiverCondition": "GMAT or GRE accepted" }
       ],

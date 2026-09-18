@@ -22,6 +22,20 @@ export type RoundInput = {
   notes?: string;
 };
 
+export type CostInput = {
+  currency: string;
+  tuitionYear1?: number | null;
+  tuitionYear2?: number | null;
+  livingCostYear1?: number | null;
+  livingCostYear2?: number | null;
+  healthInsurance?: number | null;
+  applicationFee?: number | null;
+  visaFee?: number | null;
+  booksAndSupplies?: number | null;
+  otherFees?: number | null;
+  otherFeesNote?: string;
+};
+
 export type SchoolFormPayload = {
   name: string;
   country: string;
@@ -31,8 +45,7 @@ export type SchoolFormPayload = {
   programName: string;
   programFormat: ProgramFormat;
   durationMonths?: number | null;
-  tuition?: number | null;
-  currency?: string;
+  cost: CostInput;
   startMonth: number;
   startYear: number;
   rounds: RoundInput[];

@@ -19,8 +19,21 @@ export default async function EditSchoolPage({ params }: { params: Promise<{ id:
     programName: program?.name ?? "MBA",
     programFormat: program?.format ?? "FULL_TIME",
     durationMonths: program?.durationMonths,
-    tuition: program?.tuition,
-    currency: program?.currency,
+    cost: program?.cost
+      ? {
+          currency: program.cost.currency,
+          tuitionYear1: program.cost.tuitionYear1,
+          tuitionYear2: program.cost.tuitionYear2,
+          livingCostYear1: program.cost.livingCostYear1,
+          livingCostYear2: program.cost.livingCostYear2,
+          healthInsurance: program.cost.healthInsurance,
+          applicationFee: program.cost.applicationFee,
+          visaFee: program.cost.visaFee,
+          booksAndSupplies: program.cost.booksAndSupplies,
+          otherFees: program.cost.otherFees,
+          otherFeesNote: program.cost.otherFeesNote ?? undefined,
+        }
+      : undefined,
     startMonth: intake?.startMonth ?? 9,
     startYear: intake?.startYear ?? new Date().getFullYear() + 1,
     rounds: (intake?.rounds ?? []).map((r) => ({

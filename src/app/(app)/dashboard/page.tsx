@@ -23,7 +23,10 @@ export default async function DashboardPage() {
     schoolWebsite: r.intake.program.school.website,
     programName: r.intake.program.name,
     roundNumber: r.roundNumber,
+    intakeMonth: r.intake.startMonth,
+    intakeYear: r.intake.startYear,
     deadlineDate: r.deadlineDate.toISOString(),
+    decisionDate: r.decisionDate ? r.decisionDate.toISOString() : null,
     status: r.applicationStatus?.status ?? "NOT_STARTED",
   }));
 

@@ -29,6 +29,7 @@ export async function getSchoolsOverview() {
     include: {
       programs: {
         include: {
+          cost: true,
           intakes: {
             include: { rounds: { include: { applicationStatus: true }, orderBy: { deadlineDate: "asc" } } },
           },
@@ -50,6 +51,7 @@ export async function getSchoolById(id: string) {
     include: {
       programs: {
         include: {
+          cost: true,
           intakes: {
             include: { rounds: { include: { applicationStatus: true }, orderBy: { deadlineDate: "asc" } } },
           },

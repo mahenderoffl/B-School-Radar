@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { REQUIREMENT_LABELS, SCHOLARSHIP_TYPE_LABELS, PROGRAM_FORMAT_LABELS, MONTH_NAMES } from "@/lib/utils";
-import type { SchoolFormPayload, RequirementInput, ScholarshipInput, RoundInput } from "@/lib/schoolForm";
+import { REQUIREMENT_LABELS, SCHOLARSHIP_TYPE_LABELS, PROGRAM_FORMAT_LABELS, MONTH_NAMES, COST_LINE_LABELS } from "@/lib/utils";
+import type { SchoolFormPayload, RequirementInput, ScholarshipInput, RoundInput, CostInput } from "@/lib/schoolForm";
 import { btnPrimary, btnSecondary, btnGhost, btnDangerOutline, card, inputClass } from "@/lib/ui";
 
 const REQUIREMENT_TYPES = Object.keys(REQUIREMENT_LABELS);
@@ -25,8 +25,7 @@ export type SchoolFormInitial = {
   programName: string;
   programFormat: string;
   durationMonths?: number | null;
-  tuition?: number | null;
-  currency?: string | null;
+  cost?: CostInput | null;
   startMonth: number;
   startYear: number;
   rounds: (RoundInput & { deadlineDate: string; decisionDate?: string })[];
@@ -37,6 +36,8 @@ export type SchoolFormInitial = {
 const emptyRound = (n: number): RoundInput => ({ roundNumber: n, deadlineDate: "", decisionDate: "", notes: "" });
 const emptyRequirement = (): RequirementInput => ({ type: "GMAT" as RequirementInput["type"], mandatory: true, waiverCondition: "", minScore: undefined });
 const emptyScholarship = (): ScholarshipInput => ({ name: "", type: "MERIT" as ScholarshipInput["type"], amountPct: undefined, deadlineDate: "", requiresSeparateForm: false });
+const emptyCost = (): CostInput => ({ currency: "USD" });
+const COST_FIELD_KEYS = Object.keys(COST_LINE_LABELS) as (keyof typeof COST_LINE_LABELS)[];
 
 export default function SchoolForm({
   mode,
@@ -60,8 +61,7 @@ export default function SchoolForm({
   const [programName, setProgramName] = useState(initial?.programName ?? "MBA");
   const [programFormat, setProgramFormat] = useState(initial?.programFormat ?? "FULL_TIME");
   const [durationMonths, setDurationMonths] = useState(initial?.durationMonths?.toString() ?? "");
-  const [tuition, setTuition] = useState(initial?.tuition?.toString() ?? "");
-  const [currency, setCurrency] = useState(initial?.currency ?? "USD");
+  const [cost, setCost] = useState<CostInput>(initial?.cost ?? emptyCost());
   const [startMonth, setStartMonth] = useState(initial?.startMonth ?? 9);
   const [startYear, setStartYear] = useState(initial?.startYear ?? new Date().getFullYear() + 1);
 
@@ -87,8 +87,7 @@ export default function SchoolForm({
       programName,
       programFormat: programFormat as SchoolFormPayload["programFormat"],
       durationMonths: durationMonths ? Number(durationMonths) : null,
-      tuition: tuition ? Number(tuition) : null,
-      currency,
+      cost,
       startMonth: Number(startMonth),
       startYear: Number(startYear),
       rounds: rounds
@@ -157,12 +156,6 @@ export default function SchoolForm({
           <Field label="Duration (months)">
             <input type="number" value={durationMonths} onChange={(e) => setDurationMonths(e.target.value)} className={inputClass} />
           </Field>
-          <Field label="Tuition">
-            <input type="number" value={tuition} onChange={(e) => setTuition(e.target.value)} className={inputClass} />
-          </Field>
-          <Field label="Currency">
-            <input value={currency} onChange={(e) => setCurrency(e.target.value)} className={inputClass} />
-          </Field>
           <Field label="Intake start month">
             <select value={startMonth} onChange={(e) => setStartMonth(Number(e.target.value))} className={inputClass}>
               {MONTH_NAMES.map((m, i) => (
@@ -174,6 +167,37 @@ export default function SchoolForm({
           </Field>
           <Field label="Intake start year">
             <input type="number" value={startYear} onChange={(e) => setStartYear(Number(e.target.value))} className={inputClass} />
+          </Field>
+        </div>
+      </section>
+
+      <section className={`${card} p-5`}>
+        <h2 className="mb-1 text-base font-semibold tracking-tight text-gray-900">Cost of attendance</h2>
+        <p className="mb-4 text-sm text-gray-500">
+          Tuition split by year so a 2-year program isn&apos;t reduced to one number. Leave Year 2 blank for
+          1-year programs. Everything here is optional — fill in what the school publishes.
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Field label="Currency">
+            <input value={cost.currency} onChange={(e) => setCost({ ...cost, currency: e.target.value })} className={inputClass} />
+          </Field>
+          {COST_FIELD_KEYS.map((key) => (
+            <Field key={key} label={COST_LINE_LABELS[key]}>
+              <input
+                type="number"
+                value={cost[key] ?? ""}
+                onChange={(e) => setCost({ ...cost, [key]: e.target.value ? Number(e.target.value) : undefined })}
+                className={inputClass}
+              />
+            </Field>
+          ))}
+          <Field label="Other fees — what's included">
+            <input
+              value={cost.otherFeesNote ?? ""}
+              onChange={(e) => setCost({ ...cost, otherFeesNote: e.target.value })}
+              className={inputClass}
+              placeholder="e.g. student activity fee, orientation fee"
+            />
           </Field>
         </div>
       </section>
@@ -196,7 +220,7 @@ export default function SchoolForm({
                   className={inputClass}
                 />
               </Field>
-              <Field label="Deadline">
+              <Field label="Application deadline">
                 <input
                   type="date"
                   value={r.deadlineDate}

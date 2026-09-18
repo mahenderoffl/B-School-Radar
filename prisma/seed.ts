@@ -22,6 +22,11 @@ type SchoolSeed = {
     name: string;
     format: ProgramFormat;
     durationMonths?: number;
+    // Tuition only — carried over from the total published figure, split
+    // across years for 2-year programs. Living costs, health insurance,
+    // and other fees are intentionally left blank here rather than
+    // guessed: use the research prompt + CSV import (or Edit school) to
+    // fill those in from each school's actual cost-of-attendance page.
     tuition?: number;
     currency?: string;
     startMonth: number;
@@ -360,10 +365,22 @@ async function main() {
         name: s.program.name,
         format: s.program.format,
         durationMonths: s.program.durationMonths,
-        tuition: s.program.tuition,
-        currency: s.program.currency,
       },
     });
+
+    if (s.program.tuition != null) {
+      // Programs ~24 months split their total tuition evenly across two
+      // years; anything shorter is a single-year program.
+      const isTwoYear = (s.program.durationMonths ?? 0) >= 20;
+      await prisma.programCost.create({
+        data: {
+          programId: program.id,
+          currency: s.program.currency ?? "USD",
+          tuitionYear1: isTwoYear ? Math.round(s.program.tuition / 2) : s.program.tuition,
+          tuitionYear2: isTwoYear ? Math.round(s.program.tuition / 2) : null,
+        },
+      });
+    }
 
     const intake = await prisma.intake.create({
       data: {

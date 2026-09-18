@@ -13,6 +13,7 @@ export const EXPORT_VERSION = 1;
 const schoolInclude = {
   programs: {
     include: {
+      cost: true,
       intakes: { include: { rounds: { include: { applicationStatus: true } } } },
       requirements: true,
       scholarships: true,
@@ -104,6 +105,13 @@ function optionalDate(value: unknown, field: string): Date | null {
   return date;
 }
 
+/** Cost fields are optional estimates — a stray non-numeric value becomes null rather than failing the import. */
+function numOrNull(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 export { ImportValidationError };
 
 /**
@@ -152,13 +160,29 @@ export async function importData(payload: unknown, { replace }: { replace: boole
             const requirements = Array.isArray(p.requirements) ? (p.requirements as Record<string, unknown>[]) : [];
             const scholarships = Array.isArray(p.scholarships) ? (p.scholarships as Record<string, unknown>[]) : [];
             const intakes = Array.isArray(p.intakes) ? (p.intakes as Record<string, unknown>[]) : [];
+            const cost = (p.cost as Record<string, unknown> | null | undefined) ?? undefined;
 
             return {
               name: requireString(p.name, "program.name"),
               format: optionalEnum(p.format, PROGRAM_FORMATS, "program.format", "FULL_TIME"),
               durationMonths: p.durationMonths != null ? Number(p.durationMonths) : null,
-              tuition: p.tuition != null ? Number(p.tuition) : null,
-              currency: typeof p.currency === "string" ? p.currency : "USD",
+              cost: cost
+                ? {
+                    create: {
+                      currency: typeof cost.currency === "string" ? cost.currency : "USD",
+                      tuitionYear1: numOrNull(cost.tuitionYear1),
+                      tuitionYear2: numOrNull(cost.tuitionYear2),
+                      livingCostYear1: numOrNull(cost.livingCostYear1),
+                      livingCostYear2: numOrNull(cost.livingCostYear2),
+                      healthInsurance: numOrNull(cost.healthInsurance),
+                      applicationFee: numOrNull(cost.applicationFee),
+                      visaFee: numOrNull(cost.visaFee),
+                      booksAndSupplies: numOrNull(cost.booksAndSupplies),
+                      otherFees: numOrNull(cost.otherFees),
+                      otherFeesNote: typeof cost.otherFeesNote === "string" ? cost.otherFeesNote : null,
+                    },
+                  }
+                : undefined,
               requirements: {
                 create: requirements.map((r) => ({
                   type: requireEnum(r.type, REQUIREMENT_TYPES, "requirement.type"),

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSchoolsOverview, nextOpenRound } from "@/lib/queries";
-import { REQUIREMENT_LABELS } from "@/lib/utils";
+import { REQUIREMENT_LABELS, formatMoney, totalProgramCost } from "@/lib/utils";
 import { btnPrimary } from "@/lib/ui";
 import SchoolsTable, { type SchoolRow } from "@/components/SchoolsTable";
 
@@ -18,6 +18,7 @@ export default async function SchoolsPage() {
     const nextScholarship = scholarships.sort(
       (a, b) => new Date(a.deadlineDate!).getTime() - new Date(b.deadlineDate!).getTime()
     )[0];
+    const total = totalProgramCost(program?.cost);
 
     return {
       id: school.id,
@@ -33,6 +34,7 @@ export default async function SchoolsPage() {
         waiverCondition: r.waiverCondition,
       })),
       nextScholarshipDeadline: nextScholarship?.deadlineDate ? nextScholarship.deadlineDate.toISOString() : null,
+      estimatedTotalCost: total != null ? formatMoney(total, program!.cost!.currency) : null,
     };
   });
 

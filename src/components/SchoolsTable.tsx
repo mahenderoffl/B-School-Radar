@@ -17,6 +17,7 @@ export type SchoolRow = {
   nextDeadline: string | null;
   requirements: { id: string; label: string; waivable: boolean; waiverCondition: string | null }[];
   nextScholarshipDeadline: string | null;
+  estimatedTotalCost: string | null;
 };
 
 export default function SchoolsTable({ schools }: { schools: SchoolRow[] }) {
@@ -57,9 +58,10 @@ export default function SchoolsTable({ schools }: { schools: SchoolRow[] }) {
             <thead className="bg-gray-50/80 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
               <tr>
                 <th className="px-4 py-3">School</th>
-                <th className="px-4 py-3">Next deadline</th>
+                <th className="px-4 py-3">Application deadline</th>
                 <th className="px-4 py-3">Test requirements</th>
-                <th className="px-4 py-3">Next scholarship deadline</th>
+                <th className="px-4 py-3">Scholarship deadline</th>
+                <th className="px-4 py-3">Est. total cost</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -117,6 +119,7 @@ export default function SchoolsTable({ schools }: { schools: SchoolRow[] }) {
                       <span className="text-gray-400">—</span>
                     )}
                   </td>
+                  <td className="px-4 py-3 text-gray-600">{school.estimatedTotalCost ?? <span className="text-gray-400">—</span>}</td>
                   <td className="px-4 py-3 text-right">
                     <Link href={`/schools/${school.id}`} className={`text-sm ${link}`}>
                       View →

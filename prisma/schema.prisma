@@ -64,14 +64,34 @@ model Program {
   name          String
   format        ProgramFormat @default(FULL_TIME)
   durationMonths Int?
-  tuition       Float?
-  currency      String?       @default("USD")
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
+  cost          ProgramCost?
   intakes       Intake[]
   requirements  Requirement[]
   scholarships  Scholarship[]
+}
+
+/// Full cost-of-attendance breakdown for a program, split by year so a
+/// 2-year program's year 1 and year 2 costs aren't lumped into one number.
+model ProgramCost {
+  id                String   @id @default(cuid())
+  program           Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programId         String   @unique
+  currency          String   @default("USD")
+  tuitionYear1      Float?
+  tuitionYear2      Float?
+  livingCostYear1   Float?
+  livingCostYear2   Float?
+  healthInsurance   Float?
+  applicationFee    Float?
+  visaFee           Float?
+  booksAndSupplies  Float?
+  otherFees         Float?
+  otherFeesNote     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Intake {

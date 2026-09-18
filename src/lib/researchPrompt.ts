@@ -1,5 +1,5 @@
 const CSV_HEADERS =
-  "school_name,country,city,global_ranking,website,program_name,program_format,duration_months,tuition,currency,intake_month,intake_year,round_number,deadline_date,decision_date,round_notes,requirements,scholarships";
+  "school_name,country,city,global_ranking,website,program_name,program_format,duration_months,currency,tuition_year1,tuition_year2,living_cost_year1,living_cost_year2,health_insurance,application_fee,visa_fee,books_and_supplies,other_fees,other_fees_note,intake_month,intake_year,round_number,deadline_date,decision_date,round_notes,requirements,scholarships";
 
 /**
  * A prompt matching our CSV import format exactly (headers, encoding rules,
@@ -14,9 +14,17 @@ export function buildResearchPrompt(schoolName?: string): string {
 ${CSV_HEADERS}
 
 Rules:
-- One row per application round for the current or next upcoming admissions cycle. Repeat the school/program-level columns (school_name through currency) identically across every row for that program.
+- One row per application round for the current or next upcoming admissions cycle. Repeat the school/program-level columns (school_name through other_fees_note) identically across every row for that program.
 - program_format must be exactly one of: FULL_TIME, PART_TIME, EXECUTIVE, ONLINE
 - All dates must be YYYY-MM-DD. If a date isn't confirmed for the upcoming cycle, leave that cell blank rather than guessing or using a past cycle's date.
+- Cost columns — find these on the school's tuition/fees and cost-of-attendance or financial aid pages. Every cost is a plain number in the one 'currency' column (a 3-letter code like USD, EUR, GBP, INR); leave a cell blank rather than guessing:
+  - tuition_year1 / tuition_year2: tuition for each year separately. If the program is only 1 year, leave tuition_year2 blank rather than repeating year 1's number or leaving it unclear.
+  - living_cost_year1 / living_cost_year2: the school's own published estimated living expenses (housing, food, transport, personal) for each year — most schools publish this on their cost-of-attendance page. Leave year 2 blank for a 1-year program.
+  - health_insurance: mandatory student health insurance cost, if the school requires and publishes one.
+  - application_fee: the one-time fee to submit an application.
+  - visa_fee: visa/immigration processing fee estimate, if the school publishes one for international students.
+  - books_and_supplies: estimated cost of books, course materials, and supplies for the program.
+  - other_fees / other_fees_note: any other fee the school lists that doesn't fit above (activity fee, orientation fee, technology fee, etc.) — put the amount in other_fees and a short description in other_fees_note.
 - If a field's value contains a comma (e.g. a city like "Boston, MA"), wrap that field in double quotes.
 - requirements column: one or more entries separated by ';', each entry formatted TYPE|MANDATORY|MIN_SCORE|WAIVER_NOTE
   - TYPE is one of: GMAT, GRE, IELTS, TOEFL, IEGAT, OTHER

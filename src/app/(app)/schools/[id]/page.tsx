@@ -4,6 +4,9 @@ import { getSchoolById } from "@/lib/queries";
 import {
   formatDate,
   formatMonthYear,
+  formatMoney,
+  totalProgramCost,
+  COST_LINE_LABELS,
   REQUIREMENT_LABELS,
   SCHOLARSHIP_TYPE_LABELS,
   PROGRAM_FORMAT_LABELS,
@@ -67,14 +70,52 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
                 <dt className="text-gray-500">Duration</dt>
                 <dd className="text-gray-800">{program.durationMonths ? `${program.durationMonths} months` : "—"}</dd>
               </div>
-              <div>
-                <dt className="text-gray-500">Tuition</dt>
-                <dd className="text-gray-800">
-                  {program.tuition ? `${program.tuition.toLocaleString()} ${program.currency ?? ""}` : "—"}
-                </dd>
-              </div>
             </dl>
           </div>
+
+          <section>
+            <div className="mb-3 flex items-baseline justify-between">
+              <h3 className="text-base font-semibold tracking-tight text-gray-900">Cost of attendance</h3>
+              {(() => {
+                const total = totalProgramCost(program.cost);
+                return total != null ? (
+                  <span className="text-sm text-gray-500">
+                    Estimated total: <span className="font-semibold text-gray-800">{formatMoney(total, program.cost!.currency)}</span>
+                  </span>
+                ) : null;
+              })()}
+            </div>
+            {!program.cost || totalProgramCost(program.cost) == null ? (
+              <span className="text-sm text-gray-400">No cost data yet — add it via Edit or import.</span>
+            ) : (
+              <div className={`${card} overflow-hidden`}>
+                <table className="min-w-full divide-y divide-gray-100 text-sm">
+                  <tbody className="divide-y divide-gray-100">
+                    {(Object.keys(COST_LINE_LABELS) as (keyof typeof COST_LINE_LABELS)[])
+                      .filter((key) => program.cost![key] != null)
+                      .map((key) => (
+                        <tr key={key}>
+                          <td className="px-4 py-2.5 text-gray-600">{COST_LINE_LABELS[key]}</td>
+                          <td className="px-4 py-2.5 text-right font-medium text-gray-800">
+                            {formatMoney(program.cost![key] as number, program.cost!.currency)}
+                          </td>
+                        </tr>
+                      ))}
+                    {program.cost.otherFeesNote && (
+                      <tr>
+                        <td colSpan={2} className="px-4 py-2 text-xs text-gray-400">
+                          Other fees: {program.cost.otherFeesNote}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <p className="mt-2 text-xs text-gray-400">
+              Estimate based on the fields entered — verify against the school&apos;s official cost of attendance page.
+            </p>
+          </section>
 
           <section>
             <h3 className="mb-3 text-base font-semibold tracking-tight text-gray-900">Requirements</h3>
@@ -125,8 +166,13 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
             <div className="flex flex-col gap-6">
               {program.intakes.map((intake) => (
                 <div key={intake.id}>
-                  <div className="mb-2 text-sm font-medium text-gray-600">
-                    {formatMonthYear(intake.startMonth, intake.startYear)} intake
+                  <div className="mb-2 flex flex-wrap items-baseline gap-x-4 gap-y-0.5 text-sm">
+                    <span className="font-medium text-gray-700">
+                      Intake: <span className="font-semibold text-gray-900">{formatMonthYear(intake.startMonth, intake.startYear)}</span>
+                    </span>
+                    <span className="text-gray-500">
+                      Classes commence: <span className="text-gray-700">{formatMonthYear(intake.startMonth, intake.startYear)}</span>
+                    </span>
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {intake.rounds.map((round) => (
@@ -136,11 +182,17 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
                             <div className="font-medium text-gray-800">Round {round.roundNumber}</div>
                             <DeadlineBadge date={round.deadlineDate} />
                           </div>
-                          <div className="mt-1 text-sm text-gray-500">
-                            Deadline: {formatDate(round.deadlineDate)}
-                            {round.decisionDate && ` · Decision: ${formatDate(round.decisionDate)}`}
-                          </div>
-                          {round.notes && <div className="mt-1 text-xs text-gray-400">{round.notes}</div>}
+                          <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                            <div>
+                              <dt className="text-gray-400">Application deadline</dt>
+                              <dd className="font-medium text-gray-700">{formatDate(round.deadlineDate)}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-gray-400">Decision date</dt>
+                              <dd className="font-medium text-gray-700">{round.decisionDate ? formatDate(round.decisionDate) : "—"}</dd>
+                            </div>
+                          </dl>
+                          {round.notes && <div className="mt-2 text-xs text-gray-400">{round.notes}</div>}
                         </div>
                         <RoundStatusPanel
                           roundId={round.id}

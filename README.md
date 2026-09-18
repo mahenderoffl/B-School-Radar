@@ -13,9 +13,13 @@ and a per-school checklist — so you don't have to keep it all in a spreadsheet
   are clickable filters.
 - **Schools** — a searchable table of every school you're tracking with its next
   deadline, test requirements, and next scholarship deadline at a glance.
-- **School detail** — full breakdown per school: program info, requirements
+- **School detail** — full breakdown per school: program info, a full cost of
+  attendance (tuition split by Year 1 / Year 2 so a 2-year program isn't reduced to
+  one number, plus living costs, health insurance, application fee, visa fee, books &
+  supplies, and any other fee — with an estimated total), requirements
   (GMAT/GRE/IELTS/TOEFL/ieGAT, with waiver notes), scholarships, and every round with
-  an editable status + checklist.
+  a clearly labeled application deadline and decision date, an editable status +
+  checklist, and the intake/classes-commence date shown alongside it.
 - **Checklist** — the same tasks (test scores, essays, LORs, transcripts, fees) grouped
   across every in-progress school, so checking "GMAT submitted" once shows you every
   school it still needs it for.
@@ -25,11 +29,13 @@ and a per-school checklist — so you don't have to keep it all in a spreadsheet
   official admissions page every cycle.
 - **Import / export** — export everything as one JSON file (`/data`, or per-school from
   its detail page) for backup or moving to a different deployment. Import accepts that
-  same JSON, or a `.csv`/`.xlsx`/`.xls` spreadsheet of deadlines, requirements, and
-  scholarships (one row per round) for bulk entry — from the Data page (merge or
-  replace-all) or the Add School page (always merges), by file upload or pasted text.
-  A CSV template and a copy-ready research prompt (paste into any LLM, paste its CSV
-  output back in) are both one click away from either.
+  same JSON, or a `.csv`/`.xlsx`/`.xls` spreadsheet of deadlines, requirements,
+  scholarships, and the full cost breakdown (one row per round) for bulk entry — from
+  the Data page (merge or replace-all) or the Add School page (always merges), by file
+  upload or pasted text. A CSV template and a copy-ready research prompt (paste into
+  any LLM, paste its CSV output back in) are both one click away from either — the
+  prompt asks the LLM to find tuition by year, living costs, and every other fee from
+  the school's own cost-of-attendance page, not just tuition.
 - **Auto-detected logos** — every school gets a small logo next to its name wherever it
   appears, derived from its website's domain with no lookup or upload needed. It reads
   the school's own site for its real high-resolution icon (apple-touch-icon or the
