@@ -55,6 +55,61 @@ function requireNumber(value: unknown, field: string): number {
   return n;
 }
 
+function requireEnum<T extends string>(value: unknown, allowed: readonly T[], field: string): T {
+  if (value == null || value === "") {
+    throw new ImportValidationError(`Missing "${field}" — must be one of ${allowed.join(", ")}`);
+  }
+  const normalized =
+    typeof value === "string" ? value.trim().toUpperCase().replace(/[\s-]+/g, "_") : String(value);
+  if (!allowed.includes(normalized as T)) {
+    throw new ImportValidationError(
+      `Invalid "${field}": "${String(value)}" — must be one of ${allowed.join(", ")}`
+    );
+  }
+  return normalized as T;
+}
+
+function optionalEnum<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+  field: string,
+  fallback: T
+): T {
+  if (value == null || value === "") return fallback;
+  return requireEnum(value, allowed, field);
+}
+
+function requireDate(value: unknown, field: string): Date {
+  const str = requireString(value, field);
+  const date = new Date(str);
+  if (Number.isNaN(date.getTime())) {
+    throw new ImportValidationError(`Invalid "${field}": "${str}" is not a valid date (use YYYY-MM-DD)`);
+  }
+  return date;
+}
+
+function optionalDate(value: unknown, field: string): Date | null {
+  if (value == null || value === "") return null;
+  const date = new Date(value as string);
+  if (Number.isNaN(date.getTime())) {
+    throw new ImportValidationError(`Invalid "${field}": "${String(value)}" is not a valid date (use YYYY-MM-DD)`);
+  }
+  return date;
+}
+
+const PROGRAM_FORMATS = ["FULL_TIME", "PART_TIME", "EXECUTIVE", "ONLINE"] as const;
+const INTAKE_STATUSES = ["UPCOMING", "OPEN", "CLOSED"] as const;
+const REQUIREMENT_TYPES = ["GMAT", "GRE", "IELTS", "TOEFL", "IEGAT", "OTHER"] as const;
+const SCHOLARSHIP_TYPES = ["MERIT", "NEED", "DIVERSITY", "OTHER"] as const;
+const APPLICATION_STAGES = [
+  "NOT_STARTED",
+  "IN_PROGRESS",
+  "SUBMITTED",
+  "WAITLISTED",
+  "ADMITTED",
+  "REJECTED",
+] as const;
+
 export { ImportValidationError };
 
 /**
@@ -106,13 +161,13 @@ export async function importData(payload: unknown, { replace }: { replace: boole
 
             return {
               name: requireString(p.name, "program.name"),
-              format: (p.format as never) ?? "FULL_TIME",
+              format: optionalEnum(p.format, PROGRAM_FORMATS, "program.format", "FULL_TIME"),
               durationMonths: p.durationMonths != null ? Number(p.durationMonths) : null,
               tuition: p.tuition != null ? Number(p.tuition) : null,
               currency: typeof p.currency === "string" ? p.currency : "USD",
               requirements: {
                 create: requirements.map((r) => ({
-                  type: r.type as never,
+                  type: requireEnum(r.type, REQUIREMENT_TYPES, "requirement.type"),
                   mandatory: r.mandatory !== false,
                   waiverCondition: typeof r.waiverCondition === "string" ? r.waiverCondition : null,
                   minScore: r.minScore != null ? Number(r.minScore) : null,
@@ -121,9 +176,9 @@ export async function importData(payload: unknown, { replace }: { replace: boole
               scholarships: {
                 create: scholarships.map((sc) => ({
                   name: requireString(sc.name, "scholarship.name"),
-                  type: (sc.type as never) ?? "MERIT",
+                  type: optionalEnum(sc.type, SCHOLARSHIP_TYPES, "scholarship.type", "MERIT"),
                   amountPct: sc.amountPct != null ? Number(sc.amountPct) : null,
-                  deadlineDate: sc.deadlineDate ? new Date(sc.deadlineDate as string) : null,
+                  deadlineDate: optionalDate(sc.deadlineDate, "scholarship.deadlineDate"),
                   requiresSeparateForm: sc.requiresSeparateForm === true,
                 })),
               },
@@ -133,18 +188,23 @@ export async function importData(payload: unknown, { replace }: { replace: boole
                   return {
                     startMonth: requireNumber(i.startMonth, "intake.startMonth"),
                     startYear: requireNumber(i.startYear, "intake.startYear"),
-                    status: (i.status as never) ?? "OPEN",
+                    status: optionalEnum(i.status, INTAKE_STATUSES, "intake.status", "OPEN"),
                     rounds: {
                       create: rounds.map((r) => {
                         const status = r.applicationStatus as Record<string, unknown> | null | undefined;
                         return {
                           roundNumber: requireNumber(r.roundNumber, "round.roundNumber"),
-                          deadlineDate: new Date(requireString(r.deadlineDate as string, "round.deadlineDate")),
-                          decisionDate: r.decisionDate ? new Date(r.decisionDate as string) : null,
+                          deadlineDate: requireDate(r.deadlineDate, "round.deadlineDate"),
+                          decisionDate: optionalDate(r.decisionDate, "round.decisionDate"),
                           notes: typeof r.notes === "string" ? r.notes : null,
                           applicationStatus: {
                             create: {
-                              status: (status?.status as never) ?? "NOT_STARTED",
+                              status: optionalEnum(
+                                status?.status,
+                                APPLICATION_STAGES,
+                                "applicationStatus.status",
+                                "NOT_STARTED"
+                              ),
                               taskChecklist: typeof status?.taskChecklist === "string" ? status.taskChecklist : "[]",
                               notes: typeof status?.notes === "string" ? status.notes : null,
                             },

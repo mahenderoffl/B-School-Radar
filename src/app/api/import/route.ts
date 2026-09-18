@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { importData, ImportValidationError } from "@/lib/importExport";
 import { parseCsvBuffer, parseXlsxBuffer, rowsToSchools } from "@/lib/importFile";
 
@@ -59,6 +60,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: err.message }, { status: 400 });
     }
     console.error("Import failed:", err);
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      return NextResponse.json(
+        { error: "Import failed — that record already exists (a duplicate value hit a unique constraint)." },
+        { status: 400 }
+      );
+    }
+    if (
+      err instanceof Prisma.PrismaClientValidationError ||
+      err instanceof Prisma.PrismaClientKnownRequestError
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Import failed — the database rejected one of the values (an unexpected field or a value the schema doesn't accept). Check the CSV template's column names and value formats and try again.",
+        },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { error: "Import failed — check that the file matches the expected format and try again." },
       { status: 400 }
