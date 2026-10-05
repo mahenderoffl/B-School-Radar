@@ -106,6 +106,22 @@ export const APPLICATION_STAGE_CLASSES: Record<string, string> = {
   REJECTED: "bg-red-100 text-red-700",
 };
 
+export const SCHOLARSHIP_PLAN_STAGE_LABELS: Record<string, string> = {
+  INTERESTED: "Interested",
+  PREPARING: "Preparing",
+  APPLIED: "Applied",
+  AWARDED: "Awarded",
+  REJECTED: "Rejected",
+};
+
+export const SCHOLARSHIP_PLAN_STAGE_CLASSES: Record<string, string> = {
+  INTERESTED: "bg-gray-100 text-gray-600",
+  PREPARING: "bg-blue-100 text-blue-700",
+  APPLIED: "bg-violet-100 text-violet-700",
+  AWARDED: "bg-emerald-100 text-emerald-700",
+  REJECTED: "bg-red-100 text-red-700",
+};
+
 export const PROGRAM_FORMAT_LABELS: Record<string, string> = {
   FULL_TIME: "Full-time",
   PART_TIME: "Part-time",
@@ -181,4 +197,12 @@ export const DEFAULT_CHECKLIST_ITEMS = [
   "Transcripts uploaded",
   "Application fee paid",
   "Scholarship form (if applicable)",
+];
+
+export const DEFAULT_SCHOLARSHIP_CHECKLIST_ITEMS = [
+  "Check eligibility",
+  "Statement of purpose / essay",
+  "Letters of recommendation",
+  "Financial documents",
+  "Submit application",
 ];

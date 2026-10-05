@@ -6,8 +6,8 @@ and a per-school checklist — so you don't have to keep it all in a spreadsheet
 ## What it does
 
 - **Landing page** (`/`) — a static overview of what the app does, with a link into
-  the app. Everything below lives under `/dashboard`, `/schools`, `/checklist`, and
-  `/data`, sharing one navigation shell.
+  the app. Everything below lives under `/dashboard`, `/schools`, `/scholarships`,
+  `/checklist`, and `/data`, sharing one navigation shell.
 - **Dashboard** — every open application round and scholarship deadline across all
   schools, sorted by how soon it closes and color-coded by urgency. The summary cards
   are clickable filters.
@@ -20,6 +20,12 @@ and a per-school checklist — so you don't have to keep it all in a spreadsheet
   (GMAT/GRE/IELTS/TOEFL/ieGAT, with waiver notes), scholarships, and every round with
   a clearly labeled application deadline and decision date, an editable status +
   checklist, and the intake/classes-commence date shown alongside it.
+- **Scholarships** — a place for scholarships you come across outside a school's own
+  listing (foundations, employers, government funds): save the provider, link, amount
+  or coverage, deadline, eligibility, and optionally which school it's for, then plan
+  the application with a status (Interested → Preparing → Applied → Awarded/Rejected),
+  an editable checklist, and notes. Open ones show up in the dashboard's scholarship
+  deadlines alongside school-listed ones, and they're included in the JSON export.
 - **Checklist** — the same tasks (test scores, essays, LORs, transcripts, fees) grouped
   across every in-progress school, so checking "GMAT submitted" once shows you every
   school it still needs it for.

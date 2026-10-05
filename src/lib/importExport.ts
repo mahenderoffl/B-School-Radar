@@ -5,6 +5,7 @@ import {
   REQUIREMENT_TYPES,
   SCHOLARSHIP_TYPES,
   APPLICATION_STAGES,
+  SCHOLARSHIP_PLAN_STAGES,
   normalizeEnumGuess,
 } from "@/lib/enums";
 
@@ -27,10 +28,18 @@ export async function exportAllData() {
     orderBy: { name: "asc" as const },
   });
 
+  // Saved scholarships carry their school's name rather than relying on its id,
+  // since ids are regenerated on import.
+  const savedScholarships = await prisma.savedScholarship.findMany({
+    include: { school: { select: { name: true } } },
+    orderBy: { createdAt: "asc" as const },
+  });
+
   return {
     version: EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
     schools,
+    savedScholarships: savedScholarships.map(({ school, ...s }) => ({ ...s, schoolName: school?.name ?? null })),
   };
 }
 
@@ -138,9 +147,13 @@ function normalizeSchoolsPayload(payload: unknown): unknown[] {
  */
 export async function importData(payload: unknown, { replace }: { replace: boolean }) {
   const schools = normalizeSchoolsPayload(payload);
+  const savedScholarships = savedScholarshipsFromPayload(payload);
 
   if (replace) {
     await prisma.school.deleteMany();
+    // Only clear saved scholarships when the payload brings its own — a
+    // schools-only CSV replace shouldn't wipe plans it has no way to restore.
+    if (savedScholarships) await prisma.savedScholarship.deleteMany();
   }
 
   let imported = 0;
@@ -241,5 +254,40 @@ export async function importData(payload: unknown, { replace }: { replace: boole
     imported++;
   }
 
+  if (savedScholarships) await importSavedScholarships(savedScholarships);
+
   return imported;
+}
+
+function savedScholarshipsFromPayload(payload: unknown): Record<string, unknown>[] | null {
+  if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+    const list = (payload as Record<string, unknown>).savedScholarships;
+    if (Array.isArray(list)) return list as Record<string, unknown>[];
+  }
+  return null;
+}
+
+async function importSavedScholarships(list: Record<string, unknown>[]) {
+  const schools = await prisma.school.findMany({ select: { id: true, name: true } });
+  const schoolIdByName = new Map(schools.map((s) => [s.name.toLowerCase(), s.id]));
+
+  for (const sc of list) {
+    const schoolName = typeof sc.schoolName === "string" ? sc.schoolName.toLowerCase() : null;
+    await prisma.savedScholarship.create({
+      data: {
+        name: requireString(sc.name, "savedScholarship.name"),
+        provider: typeof sc.provider === "string" ? sc.provider : null,
+        url: typeof sc.url === "string" ? sc.url : null,
+        amount: numOrNull(sc.amount),
+        currency: typeof sc.currency === "string" ? sc.currency : "USD",
+        coverage: typeof sc.coverage === "string" ? sc.coverage : null,
+        deadlineDate: optionalDate(sc.deadlineDate, "savedScholarship.deadlineDate"),
+        eligibility: typeof sc.eligibility === "string" ? sc.eligibility : null,
+        schoolId: (schoolName && schoolIdByName.get(schoolName)) || null,
+        status: optionalEnum(sc.status, SCHOLARSHIP_PLAN_STAGES, "savedScholarship.status", "INTERESTED"),
+        taskChecklist: typeof sc.taskChecklist === "string" ? sc.taskChecklist : "[]",
+        notes: typeof sc.notes === "string" ? sc.notes : null,
+      },
+    });
+  }
 }

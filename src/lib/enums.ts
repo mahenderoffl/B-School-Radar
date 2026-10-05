@@ -13,6 +13,7 @@ export const APPLICATION_STAGES = [
   "ADMITTED",
   "REJECTED",
 ] as const;
+export const SCHOLARSHIP_PLAN_STAGES = ["INTERESTED", "PREPARING", "APPLIED", "AWARDED", "REJECTED"] as const;
 
 /** "Full Time" / "full-time" / "FULL_TIME" all normalize to the same enum spelling. */
 export function normalizeEnumGuess(value: string): string {

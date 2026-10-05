@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getRoundFeed, getScholarshipFeed } from "@/lib/queries";
+import { getRoundFeed, getScholarshipFeed, getSavedScholarships } from "@/lib/queries";
 import { daysUntil, formatDate } from "@/lib/utils";
 import { tableCard, link } from "@/lib/ui";
 import DeadlineBadge from "@/components/DeadlineBadge";
@@ -10,7 +10,11 @@ import SchoolLogo from "@/components/SchoolLogo";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [rounds, scholarships] = await Promise.all([getRoundFeed(), getScholarshipFeed()]);
+  const [rounds, scholarships, savedScholarships] = await Promise.all([
+    getRoundFeed(),
+    getScholarshipFeed(),
+    getSavedScholarships(),
+  ]);
 
   const openRounds = rounds
     .filter((r) => daysUntil(r.deadlineDate) >= 0)
@@ -30,7 +34,28 @@ export default async function DashboardPage() {
     status: r.applicationStatus?.status ?? "NOT_STARTED",
   }));
 
-  const openScholarships = scholarships.filter((s) => s.deadlineDate && daysUntil(s.deadlineDate) >= 0);
+  // School-listed scholarships and ones saved from elsewhere share one deadline table.
+  // Saved ones drop off once they're applied for or decided, like submitted rounds do.
+  const openScholarships = [
+    ...scholarships.map((s) => ({
+      id: s.id,
+      school: s.program.school,
+      name: s.name,
+      href: null as string | null,
+      deadlineDate: s.deadlineDate,
+    })),
+    ...savedScholarships
+      .filter((s) => s.status === "INTERESTED" || s.status === "PREPARING")
+      .map((s) => ({
+        id: s.id,
+        school: s.school,
+        name: s.name,
+        href: `/scholarships/${s.id}`,
+        deadlineDate: s.deadlineDate,
+      })),
+  ]
+    .filter((s): s is typeof s & { deadlineDate: Date } => s.deadlineDate != null && daysUntil(s.deadlineDate) >= 0)
+    .sort((a, b) => a.deadlineDate.getTime() - b.deadlineDate.getTime());
 
   return (
     <div className="flex flex-col gap-8">
@@ -60,15 +85,27 @@ export default async function DashboardPage() {
                 {openScholarships.map((s) => (
                   <tr key={s.id} className="transition-colors hover:bg-gray-50/80">
                     <td className="px-4 py-3 font-medium text-gray-900">
-                      <Link href={`/schools/${s.program.school.id}`} className="flex items-center gap-2.5">
-                        <SchoolLogo name={s.program.school.name} website={s.program.school.website} size={22} />
-                        <span className={link}>{s.program.school.name}</span>
-                      </Link>
+                      {s.school ? (
+                        <Link href={`/schools/${s.school.id}`} className="flex items-center gap-2.5">
+                          <SchoolLogo name={s.school.name} website={s.school.website} size={22} />
+                          <span className={link}>{s.school.name}</span>
+                        </Link>
+                      ) : (
+                        <span className="font-normal text-gray-500">Any school</span>
+                      )}
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{s.name}</td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {s.href ? (
+                        <Link href={s.href} className={link}>
+                          {s.name}
+                        </Link>
+                      ) : (
+                        s.name
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-gray-600">{formatDate(s.deadlineDate)}</td>
                     <td className="px-4 py-3 text-right">
-                      <DeadlineBadge date={s.deadlineDate!} />
+                      <DeadlineBadge date={s.deadlineDate} />
                     </td>
                   </tr>
                 ))}

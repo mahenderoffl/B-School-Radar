@@ -74,3 +74,21 @@ export function nextOpenRound(rounds: { deadlineDate: Date }[]) {
     .sort((a, b) => new Date(a.deadlineDate).getTime() - new Date(b.deadlineDate).getTime());
   return upcoming[0] ?? null;
 }
+
+export async function getSavedScholarships() {
+  // Nulls last so undated scholarships sit below everything with a real deadline.
+  return prisma.savedScholarship.findMany({
+    include: { school: true },
+    orderBy: [{ deadlineDate: { sort: "asc", nulls: "last" } }, { createdAt: "desc" }],
+  });
+}
+
+export type SavedScholarshipItem = Awaited<ReturnType<typeof getSavedScholarships>>[number];
+
+export function getSavedScholarshipById(id: string) {
+  return prisma.savedScholarship.findUnique({ where: { id }, include: { school: true } });
+}
+
+export function getSchoolOptions() {
+  return prisma.school.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } });
+}
